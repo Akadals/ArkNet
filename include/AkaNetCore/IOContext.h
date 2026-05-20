@@ -11,8 +11,8 @@ namespace AkaNetCore
 	class alignas(64) IOContext : public LockFreePoolAvailable
 	{
 	public:
-		OVERLAPPED_EX overlappedEx = {};
-		PSESSION owner = nullptr;
+		OVERLAPPED_EX		overlappedEx = {};
+		PSESSION			owner = nullptr;
 	public:
 		IOContext();
 		void Init() override;

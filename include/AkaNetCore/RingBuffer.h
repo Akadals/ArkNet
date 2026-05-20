@@ -11,19 +11,19 @@ namespace AkaNetCore
 	class RingBuffer
 	{
 	private:
-		vector<char> buf;
+		vector<char>				buf;
 
 		struct alignas(64) CacheLineAtomic
 		{
-			atomic<size_t> value = 0;
-			char padding[64 - sizeof(atomic<size_t>)];
+			atomic<size_t>			value = 0;
+			char					padding[64 - sizeof(atomic<size_t>)];
 		};
 
-		mutable CacheLineAtomic head;
-		mutable CacheLineAtomic tail;
+		mutable CacheLineAtomic		head;
+		mutable CacheLineAtomic		tail;
 
-		size_t capacity;
-		size_t mask;
+		size_t						capacity;
+		size_t						mask;
 	public:
 		RingBuffer(size_t size);
 		bool TryPush(const char* __restrict data, size_t len);

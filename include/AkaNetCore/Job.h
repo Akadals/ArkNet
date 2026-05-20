@@ -8,8 +8,8 @@ namespace AkaNetCore
 	class Job : public LockFreePoolAvailable
 	{
 	public:
-		vector<char> data = {};
-		uint32_t header = NULL;
+		vector<char>	data = {};
+		uint32_t		header = NULL;
 	public:
 		Job();
 		void Init() override;

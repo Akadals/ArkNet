@@ -15,15 +15,15 @@ namespace AkaNetCore
 	private:
 		struct Node
 		{
-			T* data;
-			Node* next;
+			T*				data;
+			Node*			next;
 		};
 		struct TaggedPtr
 		{
-			Node* ptr;
-			uint64_t tag;
+			Node*			ptr;
+			uint64_t		tag;
 		};
-		atomic <TaggedPtr> head;
+		atomic <TaggedPtr>	head;
 	public:
 		LockFreePool();
 		void Push(T* obj);

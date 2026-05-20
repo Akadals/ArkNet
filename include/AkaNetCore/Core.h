@@ -32,9 +32,9 @@ using namespace std;
 
 namespace AkaNetCore
 {
-	inline atomic<bool> g_running;
-
 	using OptParam = variant<const char*, bool, int>;
+
+	inline atomic<bool> g_running;
 
 	inline void SetOpt(UINT8 opt, OptParam param);
 }

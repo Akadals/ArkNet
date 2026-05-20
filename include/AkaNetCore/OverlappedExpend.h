@@ -17,10 +17,10 @@ namespace AkaNetCore
 	class alignas(64) OverlappedExpend
 	{
 	public:
-		OVERLAPPED overlapped = {};
-		char buf[MAX_BUF_SIZE];
-		WSABUF wsaBuf = {};
-		IOType ioType = IO_READING;
+		OVERLAPPED		overlapped		= {};
+		char			buf				[MAX_BUF_SIZE];
+		WSABUF			wsaBuf			= {};
+		IOType			ioType			= IO_READING;
 	public:
 		OverlappedExpend() = default;
 	};
