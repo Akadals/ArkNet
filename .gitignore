@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+
+# Build folders
+out/
+build/
+x64/
+Debug/
+Release/
+
+# CMake
+CMakeSettings.json
+CMakeUserPresets.json
+
+# Generated files
+*.obj
+*.pdb
+*.ilk
+*.lib
+*.exp
+
+# Windows
+Thumbs.db
