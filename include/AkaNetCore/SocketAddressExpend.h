@@ -13,9 +13,6 @@ namespace AkaNetCore
 		SOCKADDR_IN					sockAdr				= {};
 		DWORD						sockAdrIP			= NULL;
 		USHORT						sockAdrPort			= NULL;
-
-		LPFN_ACCEPTEX				lpAptEx				= {};
-		LPFN_GETACCEPTEXSOCKADDRS	lpGetAptExSockAdr	= {};
 	public:
 		SocketAddressExpend() = default;
 	};

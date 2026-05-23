@@ -53,7 +53,6 @@ namespace AkaNetCore
 		inline static mutex					s_mtx;
 		inline static thread				s_worker;
 	private:
-		static void UpdateCurrentTime();
 		static const char* GetTime();
 		static const char* LevelToString(LoggingLevel level);
 		static bool OpenLogFile();

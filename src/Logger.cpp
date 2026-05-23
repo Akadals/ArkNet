@@ -1,15 +1,10 @@
 #include <AkaNetCore/Logger.h>
 
-void AkaNetCore::Logger::UpdateCurrentTime()
-{
-	s_now = system_clock::now();
-}
-
 const char* AkaNetCore::Logger::GetTime()
 {
 	static string str;
 
-	UpdateCurrentTime();
+	s_now = system_clock::now();
 
 	auto seconds = system_clock::to_time_t(s_now);
 	tm* local = localtime(&seconds);
@@ -56,7 +51,7 @@ bool AkaNetCore::Logger::OpenLogFile()
 		}
 		create_directories(s_OutputPath);
 
-		UpdateCurrentTime();
+		s_now = system_clock::now();
 
 		auto t = system_clock::to_time_t(s_now);
 
