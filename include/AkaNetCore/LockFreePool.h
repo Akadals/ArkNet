@@ -23,16 +23,17 @@ namespace AkaNetCore
 			Node*			ptr;
 			uint64_t		tag;
 		};
-		atomic <TaggedPtr>	head;
+		std::atomic <TaggedPtr>	head;
 	public:
 		LockFreePool();
 		void Push(T* obj);
 		T* Pop();
 	};
+	template<typename T> using LFPOOL = LockFreePool<T>;
 
 	template<typename T> class WrappedLockFreePool
 	{
-		static_assert(is_base_of<LockFreePoolAvailable, T>::value,
+		static_assert(std::is_base_of<LockFreePoolAvailable, T>::value,
 			"T must derive from LockFreePoolAvailable");
 	private:
 		LFPOOL<T> pool = {};
@@ -41,7 +42,5 @@ namespace AkaNetCore
 		T* Acquire();
 		void Release(T* obj);
 	};
-
-	template<typename T> using LFPOOL = LockFreePool<T>;
 	template<typename T> using WLFPOOL = WrappedLockFreePool<T>;
 }

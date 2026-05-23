@@ -31,11 +31,11 @@ namespace AkaNetCore
 		WLFPOOL<IOCONTEXT> contextPool = { MAX_CTX_POOL_SIZE };
 
 		WLFPOOL<JOB> jobPool{ MAX_JOB_POOL_SIZE };
-		queue<PJOB> jobQueue = {};
+		std::queue<PJOB> jobQueue = {};
 
 		SRWLOCK sl = {};
 
-		atomic<bool> alive = false;
+		std::atomic<bool> alive = false;
 
 		alignas(64) DWORD ioCount = 0x80000000;
 		alignas(64) DWORD ioFlag = 0;

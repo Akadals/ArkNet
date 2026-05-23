@@ -7,6 +7,6 @@ AkaNetCore::Job::Job()
 
 void AkaNetCore::Job::Init()
 {
-	ZeroMemory(&data, sizeof(vector<char>));
+	std::ZeroMemory(&data, sizeof(std::vector<char>));
 	header = 0;
 }

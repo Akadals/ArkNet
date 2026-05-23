@@ -1,4 +1,5 @@
 #include <AkaNetCore/IOContext.h>
+#include <AkaNetCore/Session.h>
 
 AkaNetCore::IOContext::IOContext()
 {

@@ -2,7 +2,7 @@
 
 template<typename T> AkaNetCore::LockFreePool<T>::LockFreePool()
 {
-	head.store({ nullptr,0 }, memory_order_relaxed);
+	head.store({ nullptr,0 }, std::memory_order_relaxed);
 }
 
 template<typename T>
@@ -10,7 +10,7 @@ void AkaNetCore::LockFreePool<T>::Push(T* obj)
 {
 	Node* node = new Node{ obj, nullptr };
 
-	TaggedPtr oldHead = head.load(memory_order_acquire);
+	TaggedPtr oldHead = head.load(std::memory_order_acquire);
 
 	while (true)
 	{
@@ -23,15 +23,15 @@ void AkaNetCore::LockFreePool<T>::Push(T* obj)
 		if (head.compare_exchange_weak(
 			oldHead,
 			newHead,
-			memory_order_release,
-			memory_order_acquire)) return;
+			std::memory_order_release,
+			std::memory_order_acquire)) return;
 	}
 }
 
 template<typename T>
 T* AkaNetCore::LockFreePool<T>::Pop()
 {
-	TaggedPtr oldHead = head.load(memory_order_acquire);
+	TaggedPtr oldHead = head.load(std::memory_order_acquire);
 
 	while (oldHead.ptr)
 	{
@@ -44,8 +44,8 @@ T* AkaNetCore::LockFreePool<T>::Pop()
 		if (head.compare_exchange_weak(
 			oldHead,
 			newHead,
-			memory_order_acq_rel,
-			memory_order_acquire))
+			std::memory_order_acq_rel,
+			std::memory_order_acquire))
 		{
 			T* result = oldHead.ptr->data;
 

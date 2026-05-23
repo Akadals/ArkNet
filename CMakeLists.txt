@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(
     AkaNetCore
-    VERSION 0.1.0
+    VERSION 0.2.0
     LANGUAGES CXX
 )
+set(AKANETCORE_VERSION_TAG "alpha")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/AkaNetCore/Version.h.in
@@ -26,7 +27,7 @@ add_library(AkaNetCore STATIC
 target_include_directories(AkaNetCore
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-    	${CMAKE_CURRENT_BINARY_DIR}/generated
+        ${CMAKE_CURRENT_BINARY_DIR}/generated
 )
 
 if(WIN32)
@@ -46,3 +47,11 @@ target_precompile_headers(AkaNetCore
     PRIVATE
         src/pch.h
 )
+
+# ----------------------------
+# Tests
+# ----------------------------
+
+enable_testing()
+
+add_subdirectory(tests)

@@ -18,23 +18,16 @@
 #define AKA_API
 #endif
 
-#include <variant>
-#include <type_traits>
-#include <utility> 
-
-using namespace std;
-
 #define MAX_BUF_SIZE 0x800
 
-#define OPT_LOGGER_TIME_FORMAT 0
-#define OPT_LOGGER_ENABLE_FILE_OUTPUT 1
-#define OPT_LOGGER_FILE_OUTPUT_PATH 2
+#include <WinSock2.h>
+#include <MSWSock.h>
+
+#include <atomic>
+#include <mutex>
 
 namespace AkaNetCore
 {
-	using OptParam = variant<const char*, bool, int, float>;
-
-	inline atomic<bool> g_running;
-
-	inline void SetOpt(UINT8 opt, OptParam param);
+	inline std::atomic<bool> g_running;
+	inline std::mutex s_mtx;
 }

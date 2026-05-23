@@ -1,79 +1,78 @@
 #include <AkaNetCore/Logger.h>
 
-const char* AkaNetCore::Logger::GetTime()
+std::string AkaNetCore::Logger::GetTime()
 {
-	static string str;
+	auto now = system_clock::now();
 
-	s_now = system_clock::now();
+	auto seconds = system_clock::to_time_t(now);
+	tm local;
+	localtime_s(&local, &seconds);
 
-	auto seconds = system_clock::to_time_t(s_now);
-	tm* local = localtime(&seconds);
+	auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
 
-	auto ms = duration_cast<milliseconds>(s_now.time_since_epoch()) % 1000;
+	std::ostringstream oss;
 
-	ostringstream oss;
+	oss << '[' << std::put_time(&local, s_timeFormat.c_str())
+		<< '.' << std::setw(3) << std::setfill('0') << ms.count() << "] ";
 
-	oss << '[' << put_time(local, s_timeFormat)
-		<< '.' << setw(3) << setfill('0') << ms.count() << "] ";
-	str = oss.str();
-
-	return str.c_str();
+	return oss.str();
 }
 
-const char* AkaNetCore::Logger::LevelToString(LoggingLevel level)
+std::string AkaNetCore::Logger::LevelToString(LoggingLevel level)
 {
 	switch (level)
 	{
 	default:
-	case LoggingLevel::LEVEL_UNKNOWN:	return "[UNKNOWN] ";
-	case LoggingLevel::LEVEL_INFO:		return "[INFO] ";
-	case LoggingLevel::LEVEL_DETAIL:	return "[DETAIL] ";
-	case LoggingLevel::LEVEL_WARNING:	return "[WARNING] ";
-	case LoggingLevel::LEVEL_ERROR:		return "[ERROR] ";
-	case LoggingLevel::LEVEL_EXCAPTION: return "[EXCAPTION] ";
-	case LoggingLevel::LEVEL_MESSAGE:	return "[MESSAGE] ";
-	case LoggingLevel::LEVEL_CRASH:		return "[CRASH] ";
-	case LoggingLevel::LEVEL_TRACE:		return "[TRACE] ";
+	case LoggingLevel::LEVEL_UNKNOWN:	return "[ UNKNOWN ] ";
+	case LoggingLevel::LEVEL_INFO:		return "[ INFO ] ";
+	case LoggingLevel::LEVEL_DETAIL:	return "[ DETAIL ] ";
+	case LoggingLevel::LEVEL_WARNING:	return "[ WARNING ] ";
+	case LoggingLevel::LEVEL_ERROR:		return "[ ERROR ] ";
+	case LoggingLevel::LEVEL_EXCAPTION: return "[ EXCAPTION ] ";
+	case LoggingLevel::LEVEL_MESSAGE:	return "[ MESSAGE ] ";
+	case LoggingLevel::LEVEL_CRASH:		return "[ CRASH ] ";
+	case LoggingLevel::LEVEL_TRACE:		return "[ TRACE ] ";
 	}
 }
 
 bool AkaNetCore::Logger::OpenLogFile()
 {
 	if (s_logFile.is_open()) PRINT_ERROR("The log file is already open.");
-	if (!exists(s_OutputPath))
+
+	if (s_OutputPath.empty())
 	{
-		if (s_OutputPath == "")
-		{
-			PRINT_ERROR("s_OutputPath value is invalid.");
-			PRINT_INFO("Automatically changes the s_enableFileOutput value to false.");
-			s_enableFileOutput = false;
-			return;
-		}
-		create_directories(s_OutputPath);
-
-		s_now = system_clock::now();
-
-		auto t = system_clock::to_time_t(s_now);
-
-		tm* local = localtime(&t);
-
-		ostringstream oss;
-		oss << put_time(local, "%Y-%m-%d");
-
-		string str = oss.str() + ".log";
-
-		path filePath = s_OutputPath / str;
-
-		s_logFile.open(filePath, ios::out | ios::app);
-
-		if (!s_logFile.is_open())
-		{
-			auto msg = "Cannot open" + str + " file";
-			PRINT_ERROR(msg.c_str());
-			PRINT_INFO("Automatically changes the s_enableFileOutput value to false.");
-			s_enableFileOutput = false;
-		}
+		PRINT_ERROR("Invalid output file path");
+		PRINT_INFO("It is set to the default output path, Log\\");
+		s_enableFileOutput = false;
+		return false;
 	}
+
+	if (!exists(s_OutputPath)) create_directories(s_OutputPath);
+
+	auto now = system_clock::now();
+
+	auto t = system_clock::to_time_t(now);
+
+	tm local;
+	localtime_s(&local, &t);
+
+	std::ostringstream oss;
+	oss << std::put_time(&local, "%Y-%m-%d_%H-%M-%S");
+
+	std::string str = oss.str() + ".log";
+
+	path filePath = s_OutputPath / str;
+
+	s_logFile.open(filePath, std::ios::out | std::ios::app);
+
+	if (!s_logFile.is_open())
+	{
+		PRINT_ERROR("Cannot open " + str + " file");
+		PRINT_INFO("Automatically changes the s_enableFileOutput value to false.");
+		s_enableFileOutput = false;
+	}
+	PRINT_INFO("The output file path has been set to " + std::filesystem::absolute(filePath).string());
+	return true;
 }
 
 void AkaNetCore::Logger::Startup()
@@ -81,29 +80,27 @@ void AkaNetCore::Logger::Startup()
 	if (s_enableFileOutput)
 	{
 		if (!OpenLogFile()) return;
-		if (!s_worker.joinable()) s_worker = thread(WriteThread);
+		if (!s_worker) s_worker = (HANDLE)_beginthreadex(NULL, 0, WriteThread, NULL, 0, NULL);
 	}
 }
 
-void AkaNetCore::Logger::EnqueueLog(LoggingLevel level, const char* message)
+void AkaNetCore::Logger::EnqueueLog(LoggingLevel level, std::string message)
 {
-	lock_guard<mutex> lock(s_mtx);
+	std::lock_guard<std::mutex> lock(s_mtx);
 
-	string msg = (string)GetTime() + LevelToString(level) + message + '\n';
-	s_logQueue.push(msg.data());
+	std::string msg = GetTime() + LevelToString(level) + message + '\n';
+	s_logQueue.push(msg);
 	fputs(msg.data(), stdout);
 }
 
-void AkaNetCore::Logger::WriteThread()
+unsigned __stdcall AkaNetCore::Logger::WriteThread(PVOID arg)
 {
-	if (!s_enableFileOutput) return;
 	while (g_running)
 	{
-		vector<string> logs;
+		std::vector<std::string> logs;
 
 		{
-			lock_guard<mutex> lock(s_mtx);
-
+			std::lock_guard<std::mutex> lock(s_mtx);
 			while (!s_logQueue.empty())
 			{
 				logs.push_back(s_logQueue.front());
@@ -113,6 +110,7 @@ void AkaNetCore::Logger::WriteThread()
 		for (auto& v : logs) s_logFile << v;
 
 		s_logFile.flush();
-		Sleep(100);
+		Sleep(1);
 	}
+	return 0;
 }

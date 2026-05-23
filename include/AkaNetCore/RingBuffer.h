@@ -11,12 +11,12 @@ namespace AkaNetCore
 	class RingBuffer
 	{
 	private:
-		vector<char>				buf;
+		std::vector<char>			buf;
 
 		struct alignas(64) CacheLineAtomic
 		{
-			atomic<size_t>			value = 0;
-			char					padding[64 - sizeof(atomic<size_t>)];
+			std::atomic<size_t>		value = 0;
+			char					padding[64 - sizeof(std::atomic<size_t>)];
 		};
 
 		mutable CacheLineAtomic		head;

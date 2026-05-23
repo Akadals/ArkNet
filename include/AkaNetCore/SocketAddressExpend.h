@@ -1,7 +1,5 @@
 #pragma once
 #include <AkaNetCore/Core.h>
-#include <WinSock2.h>
-#include <MSWSock.h>
 
 namespace AkaNetCore
 {
