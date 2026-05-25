@@ -1,18 +1,80 @@
 #include <AkaNetCore/Logger.h>
+#include <AkaNetCore/Opt.h>
+#include "Internal.h"
+#include <Version.h>
 
-std::string AkaNetCore::Logger::GetTime()
+#define DEFAULT_LOGGING_LEVEL 1
+#define DEFAULT_TIME_FORMAT "%Y-%m-%d %H:%M:%S"
+#define DEFAULT_ENABLE_FILE_OUTPUT false
+#define DEFAULT_OUTPUT_PATH std::filesystem::path("Log/")
+
+namespace
 {
-	auto now = system_clock::now();
+	int						g_loggingLevel		= DEFAULT_LOGGING_LEVEL;
 
-	auto seconds = system_clock::to_time_t(now);
+	std::string				g_timeFormat		= DEFAULT_TIME_FORMAT;
+	std::filesystem::path	g_outputPath		= DEFAULT_OUTPUT_PATH;
+	bool					g_enableOutput		= DEFAULT_ENABLE_FILE_OUTPUT;
+
+	std::ofstream			g_outputFile;
+
+	std::queue<std::string>	g_logQueue;
+	HANDLE					g_worker			= NULL;
+
+	std::mutex				g_mtx;
+}
+void AkaNetCore::Internal::Logger::SetOptValueImpl(uint8_t opt, const void* param, const std::type_info& type)
+{
+	switch (opt)
+	{
+	case OPT_LOGGER_TIME_FORMAT:
+	{
+		g_timeFormat = *static_cast <const std::string*>(param);
+		PRINT_INFO(std::string("OPT_LOGGER_TIME_FORMAT has been set to ") + g_timeFormat);
+		break;
+	}
+	case OPT_LOGGER_ENABLE_FILE_OUTPUT:
+	{
+		if (g_worker) PRINT_WARNING("Cannot change OPT_LOGGER_ENABLE_FILE_OUTPUT at present");
+		else
+		{
+			g_enableOutput = *static_cast<const bool*>(param);
+			PRINT_INFO(std::string("OPT_LOGGER_ENABLE_FILE_OUTPUT has been set to ") + (g_enableOutput ? "true" : "false"));
+		}
+		break;
+	}
+	case OPT_LOGGER_FILE_OUTPUT_PATH:
+	{
+		if (g_worker) PRINT_WARNING("Cannot change OPT_LOGGER_FILE_OUTPUT_PATH at present");
+		else
+		{
+			g_outputPath = *static_cast<const std::filesystem::path*>(param);
+			PRINT_INFO(std::string("OPT_LOGGER_FILE_OUTPUT_PATH has been set to ") + g_outputPath.string());
+		}
+		break;
+	}
+	case OPT_LOGGER_LOGGING_LEVEL:
+	{
+		g_loggingLevel = *static_cast<const int*>(param);
+		if (g_loggingLevel > 0)
+			PRINT_INFO(std::string("OPT_LOGGER_LOGGING_LEVEL has been set to ") + std::to_string(g_loggingLevel));
+	}
+	}
+}
+
+std::string AkaNetCore::Logger::GetTimeStr()
+{
+	auto now = std::chrono::system_clock::now();
+
+	auto seconds = std::chrono::system_clock::to_time_t(now);
 	tm local;
 	localtime_s(&local, &seconds);
 
-	auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
 	std::ostringstream oss;
 
-	oss << '[' << std::put_time(&local, s_timeFormat.c_str())
+	oss << '[' << std::put_time(&local, g_timeFormat.c_str())
 		<< '.' << std::setw(3) << std::setfill('0') << ms.count() << "] ";
 
 	return oss.str();
@@ -37,21 +99,21 @@ std::string AkaNetCore::Logger::LevelToString(LoggingLevel level)
 
 bool AkaNetCore::Logger::OpenLogFile()
 {
-	if (s_logFile.is_open()) PRINT_ERROR("The log file is already open.");
+	if (g_outputFile.is_open()) PRINT_ERROR("The log file is already open.");
 
-	if (s_OutputPath.empty())
+	if (g_outputPath.empty())
 	{
 		PRINT_ERROR("Invalid output file path");
 		PRINT_INFO("It is set to the default output path, Log\\");
-		s_enableFileOutput = false;
+		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
 		return false;
 	}
 
-	if (!exists(s_OutputPath)) create_directories(s_OutputPath);
+	if (!exists(g_outputPath)) create_directories(g_outputPath);
 
-	auto now = system_clock::now();
+	auto now = std::chrono::system_clock::now();
 
-	auto t = system_clock::to_time_t(now);
+	auto t = std::chrono::system_clock::to_time_t(now);
 
 	tm local;
 	localtime_s(&local, &t);
@@ -61,36 +123,74 @@ bool AkaNetCore::Logger::OpenLogFile()
 
 	std::string str = oss.str() + ".log";
 
-	path filePath = s_OutputPath / str;
+	std::filesystem::path filePath = g_outputPath / str;
 
-	s_logFile.open(filePath, std::ios::out | std::ios::app);
+	g_outputFile.open(filePath, std::ios::out | std::ios::app);
 
-	if (!s_logFile.is_open())
+	if (!g_outputFile.is_open())
 	{
 		PRINT_ERROR("Cannot open " + str + " file");
 		PRINT_INFO("Automatically changes the s_enableFileOutput value to false.");
-		s_enableFileOutput = false;
+		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
 	}
-	PRINT_INFO("The output file path has been set to " + std::filesystem::absolute(filePath).string());
 	return true;
 }
 
-void AkaNetCore::Logger::Startup()
+void AkaNetCore::Logger::StartWrite()
 {
-	if (s_enableFileOutput)
+	if (g_enableOutput)
 	{
 		if (!OpenLogFile()) return;
-		if (!s_worker) s_worker = (HANDLE)_beginthreadex(NULL, 0, WriteThread, NULL, 0, NULL);
+		if (!g_worker) g_worker = (HANDLE)_beginthreadex(NULL, 0, WriteThread, NULL, 0, NULL);
 	}
 }
 
 void AkaNetCore::Logger::EnqueueLog(LoggingLevel level, std::string message)
 {
-	std::lock_guard<std::mutex> lock(s_mtx);
+	if (g_loggingLevel == 0) return;
+	std::lock_guard<std::mutex> lock(g_mtx);
 
-	std::string msg = GetTime() + LevelToString(level) + message + '\n';
-	s_logQueue.push(msg);
+	std::string msg = GetTimeStr() + LevelToString(level) + message + '\n';
+	g_logQueue.push(msg);
 	fputs(msg.data(), stdout);
+}
+
+void AkaNetCore::Logger::PrintAllInfo()
+{
+	PrintBuildInfo();
+	PrintRuntimeInfo();
+}
+
+void AkaNetCore::Logger::PrintBuildInfo()
+{
+	PRINT_INFO(std::string("Version : ") + AKANETCORE_VERSION);
+	PRINT_INFO(std::string("Build Date : ") + AKANETCORE_BUILD_DATE);
+
+#ifdef _DEBUG
+	PRINT_INFO("Build Type : Debug");
+#else
+	PRINT_INFO("Build Type : Release");
+#endif
+
+#ifdef _WIN64
+	PRINT_INFO("Platform : Win64");
+#elif _WIN32
+	PRINT_INFO("Platform : Win32");
+#endif
+
+#ifdef _MSC_VER
+	PRINT_INFO(std::string("Compiler : MSVC ") + std::to_string(_MSC_VER));
+#endif
+}
+
+void AkaNetCore::Logger::PrintRuntimeInfo()
+{
+	PRINT_INFO(std::string("C++ Standard : ") + std::to_string(__cplusplus));
+
+	PRINT_INFO(std::string("Log Output Path : ") + +"\"" + g_outputPath.string() + "\"");
+
+	PRINT_INFO(std::string("File Output : ")
+		+ (g_enableOutput ? "Enabled" : "Disabled"));
 }
 
 unsigned __stdcall AkaNetCore::Logger::WriteThread(PVOID arg)
@@ -100,17 +200,19 @@ unsigned __stdcall AkaNetCore::Logger::WriteThread(PVOID arg)
 		std::vector<std::string> logs;
 
 		{
-			std::lock_guard<std::mutex> lock(s_mtx);
-			while (!s_logQueue.empty())
+			std::lock_guard<std::mutex> lock(g_mtx);
+			while (!g_logQueue.empty())
 			{
-				logs.push_back(s_logQueue.front());
-				s_logQueue.pop();
+				logs.push_back(g_logQueue.front());
+				g_logQueue.pop();
 			}
 		}
-		for (auto& v : logs) s_logFile << v;
+		for (auto& v : logs) g_outputFile << v;
 
-		s_logFile.flush();
+		g_outputFile.flush();
 		Sleep(1);
 	}
+	g_outputFile.close();
+	CloseHandle(g_worker);
 	return 0;
 }

@@ -20,6 +20,8 @@
 
 #define MAX_BUF_SIZE 0x800
 
+#define TO_STRING(x) #x
+
 #include <WinSock2.h>
 #include <MSWSock.h>
 
@@ -29,5 +31,4 @@
 namespace AkaNetCore
 {
 	inline std::atomic<bool> g_running;
-	inline std::mutex s_mtx;
 }

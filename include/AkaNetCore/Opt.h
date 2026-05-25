@@ -1,19 +1,27 @@
 #include <AkaNetCore/Core.h>
-#include <AkaNetCore/Logger.h>
-
-#include <variant>
-#include <type_traits>
-#include <utility> 
 #include <filesystem>
-#include <string>
 
 #define OPT_LOGGER_TIME_FORMAT 0
 #define OPT_LOGGER_ENABLE_FILE_OUTPUT 1
 #define OPT_LOGGER_FILE_OUTPUT_PATH 2
+#define OPT_LOGGER_LOGGING_LEVEL 3
+
+/*
+#======================Option Type Requirements======================#
+|																	 |
+|	* OPT_LOGGER_TIME_FORMAT			:	 std::string			 |
+|	* OPT_LOGGER_ENABLE_FILE_OUTPUT		:	 bool					 |
+|	* OPT_LOGGER_FILE_OUTPUT_PATH		:	 std::filesystem::path	 |
+|	* OPT_LOGGER_LOGGING_LEVEL			:	 int					 |
+|																	 |
+#====================================================================#
+*/
 
 namespace AkaNetCore
 {
-	using OptParam = std::variant<std::string, bool, int, float, std::filesystem::path>;
-
-	void SetOpt(uint8_t opt, const OptParam& param);
+	void SetOpt(uint8_t opt, bool param);
+	void SetOpt(uint8_t opt, std::filesystem::path param);
+	void SetOpt(uint8_t opt, std::string param);
+	void SetOpt(uint8_t opt, const char* param);
+	void SetOpt(uint8_t opt, int param);
 }

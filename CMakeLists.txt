@@ -6,6 +6,7 @@ project(
     LANGUAGES CXX
 )
 set(AKANETCORE_VERSION_TAG "alpha")
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/AkaNetCore/Version.h.in

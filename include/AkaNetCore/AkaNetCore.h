@@ -10,4 +10,3 @@
 #include <AkaNetCore/RingBuffer.h>
 #include <AkaNetCore/Session.h>
 #include <AkaNetCore/SocketAddressExpend.h>
-#include <Version.h>
