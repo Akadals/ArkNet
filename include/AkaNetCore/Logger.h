@@ -21,8 +21,8 @@
 #define PRINT_INFO(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_INFO,message)
 #define PRINT_DETAIL(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_DETAIL,message)
 #define PRINT_WARNING(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_WARNING,message)
-#define PRINT_ERROR(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_ERROR,message)
-#define PRINT_EXCAPTION(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_EXCAPTION,message)
+#define PRINT_ERROR(message, err) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_ERROR,message, err)
+#define PRINT_EXCAPTION(message, err) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_EXCAPTION,message, err)
 #define PRINT_MESSAGE(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_MESSAGE,message)
 #define PRINT_CRASH(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_CRASH,message)
 #define PRINT_TRACE(message) AkaNetCore::Logger::EnqueueLog(AkaNetCore::LoggingLevel::LEVEL_TRACE,message)
@@ -38,7 +38,7 @@ namespace AkaNetCore
 	{
 		bool OpenLogFile();
 		void StartWrite();
-		void EnqueueLog(LoggingLevel level, std::string message);
+		void EnqueueLog(LoggingLevel level, std::string message, DWORD err = ANCERRGOOD);
 		void PrintAllInfo();
 		void PrintBuildInfo();
 		void PrintRuntimeInfo();

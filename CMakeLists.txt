@@ -17,6 +17,9 @@ configure_file(
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(AKANETCORE_USE_BUNDLED_OPENSSL "Use bundled OpenSSL" ON)
+option(AKANETCORE_USE_BUNDLED_PROTOBUF "Use bundled Protobuf" ON)
+
 file(GLOB_RECURSE SOURCES
     src/*.cpp
 )

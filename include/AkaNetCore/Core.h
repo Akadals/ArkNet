@@ -40,6 +40,8 @@
 #define ANCERRBADTLSKEY			(ANCBASEERR + 13)
 #define ANCERRBADTRAFFIC		(ANCBASEERR + 14)
 #define ANCERRBADHARDWARE		(ANCBASEERR + 15)
+#define ANCERRINVALSTREAM		(ANCBASEERR + 16)
+#define ANCERRBADPATH			(ANCBASEERR + 17)
 
 #include <WinSock2.h>
 #include <MSWSock.h>
@@ -75,4 +77,7 @@ private:
 namespace AkaNetCore
 {
 	inline std::atomic<bool> g_running;
+
+	inline SOCKET listenSock;
+	inline SOCKADDR_IN listenAdr;
 }

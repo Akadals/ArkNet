@@ -137,17 +137,25 @@ uint8_t AkaNetCore::Internal::Logger::LevelToColor(uint8_t level)
 
 bool AkaNetCore::Logger::OpenLogFile()
 {
-	if (g_outputFile.is_open()) PRINT_ERROR("The log file is already open.");
+	if (g_outputFile.is_open()) PRINT_ERROR("The log file is already open.", ANCERRINVALSTREAM);
 
 	if (g_outputPath.empty())
 	{
-		PRINT_ERROR("Invalid output file path");
+		PRINT_ERROR("Invalid output file path", ANCERRBADPATH);
 		PRINT_INFO("It is set to the default output path, Log\\");
 		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
 		return false;
 	}
 
+	try
+	{
 	if (!exists(g_outputPath)) create_directories(g_outputPath);
+	}
+	catch (std::exception e)
+	{
+		PRINT_EXCAPTION("Invalid output file path", ANCERRBADPATH);
+		return false;
+	}
 
 	auto now = std::chrono::system_clock::now();
 
@@ -167,9 +175,10 @@ bool AkaNetCore::Logger::OpenLogFile()
 
 	if (!g_outputFile.is_open())
 	{
-		PRINT_EXCAPTION("Cannot open " + str + " file");
+		PRINT_EXCAPTION("Cannot open " + str + " file", ANCERRINVALSTREAM);
 		PRINT_INFO("Automatically changes the s_enableFileOutput value to false.");
 		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
+		return false;
 	}
 	return true;
 }
@@ -183,10 +192,13 @@ void AkaNetCore::Logger::StartWrite()
 	}
 }
 
-void AkaNetCore::Logger::EnqueueLog(LoggingLevel level, std::string message)
+void AkaNetCore::Logger::EnqueueLog(LoggingLevel level, std::string message, DWORD err)
 {
 	if (g_loggingLevel == 0) return;
 	if (g_loggingLevel < 2 && level == LoggingLevel::LEVEL_DETAIL) return;
+	
+	if (level == LoggingLevel::LEVEL_ERROR ||
+		level == LoggingLevel::LEVEL_EXCAPTION) Internal::Core::SetErrNo(err);
 
 	std::lock_guard<std::mutex> lock(g_mtx);
 
