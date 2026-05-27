@@ -5,23 +5,25 @@ namespace AkaNetCore
 {
 	namespace Internal
 	{
+		namespace Core
+		{
+			DWORD GetErrNo();
+			void SetErrNo(DWORD val);
+		}
 		namespace Logger
 		{
 			void SetColor(uint8_t color);
 			std::string GetTimeStr();
-			std::string LevelToString(LoggingLevel level);
-			uint8_t LevelToColor(LoggingLevel level);
-			void SetOptValueImpl(unsigned int opt, const void* param, const std::type_info& type);
-			template<typename T>
-			inline void SetOptValue(unsigned int opt, const T& param)
-			{ SetOptValueImpl(opt, &param, typeid(T)); }
+			std::string LevelToString(uint8_t level);
+			uint8_t LevelToColor(uint8_t level);
+			void SetOptValue(UINT32 opt, const void* param);
 		}
-		namespace Test
+		namespace Module
 		{
-			void SetOptValueImpl(unsigned int opt, const void* param, const std::type_info& type);
-			template<typename T>
-			inline void SetOptValue(unsigned int opt, const T& param)
-			{ SetOptValueImpl(opt, &param, typeid(T)); }
+			namespace Accept
+			{
+				void SetOptValue(UINT32 opt, const void* param);
+			}
 		}
 	}
 }

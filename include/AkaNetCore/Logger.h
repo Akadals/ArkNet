@@ -43,6 +43,8 @@ namespace AkaNetCore
 		void PrintBuildInfo();
 		void PrintRuntimeInfo();
 
+		DWORD_EX GetLastError();
+
 		unsigned __stdcall WriteThread(PVOID arg);
 	};
 }

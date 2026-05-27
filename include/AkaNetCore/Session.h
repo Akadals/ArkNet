@@ -1,6 +1,5 @@
 #pragma once
 #include <AkaNetCore/Core.h>
-#include <AkaNetCore/SocketAddressExpend.h>
 #include <AkaNetCore/IOContext.h>
 #include <AkaNetCore/RingBuffer.h>
 #include <AkaNetCore/Job.h>
@@ -15,7 +14,18 @@
 
 namespace AkaNetCore
 {
-	typedef class Session SESSION, * PSESSION;
+	typedef class Session				SESSION, * PSESSION;
+	typedef class SocketAddressExpend	SOCKADDR_EX, * PSOCKADDR_EX;
+
+	class alignas(64) SocketAddressExpend
+	{
+	public:
+		SOCKADDR_IN					sockAdr = {};
+		DWORD						sockAdrIP = NULL;
+		USHORT						sockAdrPort = NULL;
+	public:
+		SocketAddressExpend() = default;
+	};
 
 	class alignas(64) Session : public LockFreePoolAvailable
 	{

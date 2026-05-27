@@ -4,7 +4,7 @@
 #include "Internal.h"
 
 #define DEFAULT_LOGGING_LEVEL 2
-#define DEFAULT_TIME_FORMAT "%Y-%m-%d %H:%M:%S"
+#define DEFAULT_TIME_FORMAT "[%Y-%m-%d %H.%M.%S]"
 #define DEFAULT_ENABLE_FILE_OUTPUT false
 #define DEFAULT_ENABLE_COLORED true
 #define DEFAULT_OUTPUT_PATH std::filesystem::path("Log/")
@@ -32,7 +32,7 @@ namespace
 
 	std::mutex				g_mtx;
 }
-void AkaNetCore::Internal::Logger::SetOptValueImpl(unsigned int opt, const void* param, const std::type_info& type)
+void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
 {
 	switch (opt)
 	{
@@ -64,7 +64,7 @@ void AkaNetCore::Internal::Logger::SetOptValueImpl(unsigned int opt, const void*
 	}
 	case OPT_LOGGER_LOGGING_LEVEL:
 	{
-		g_loggingLevel = *static_cast<const int*>(param);
+		g_loggingLevel = *static_cast<const UINT8*>(param);
 		if (g_loggingLevel > 0)
 			PRINT_DETAIL(std::string("OPT_LOGGER_LOGGING_LEVEL has been set to ") + std::to_string(g_loggingLevel));
 		break;
@@ -96,15 +96,14 @@ std::string AkaNetCore::Internal::Logger::GetTimeStr()
 
 	std::ostringstream oss;
 
-	oss << '[' << std::put_time(&local, g_timeFormat.c_str())
-		<< '.' << std::setw(3) << std::setfill('0') << ms.count() << "] ";
+	oss << std::put_time(&local, g_timeFormat.c_str()) << (g_timeFormat.empty() ? "" : " ");
 
 	return oss.str();
 }
 
-std::string AkaNetCore::Internal::Logger::LevelToString(LoggingLevel level)
+std::string AkaNetCore::Internal::Logger::LevelToString(uint8_t level)
 {
-	switch (level)
+	switch (static_cast<LoggingLevel>(level))
 	{
 	default:
 	case LoggingLevel::LEVEL_UNKNOWN:	return "UNKNOWN";
@@ -119,9 +118,9 @@ std::string AkaNetCore::Internal::Logger::LevelToString(LoggingLevel level)
 	}
 }
 
-uint8_t AkaNetCore::Internal::Logger::LevelToColor(LoggingLevel level)
+uint8_t AkaNetCore::Internal::Logger::LevelToColor(uint8_t level)
 {
-	switch (level)
+	switch (static_cast<LoggingLevel>(level))
 	{
 	default:
 	case LoggingLevel::LEVEL_UNKNOWN:	return WHITE;
@@ -192,13 +191,13 @@ void AkaNetCore::Logger::EnqueueLog(LoggingLevel level, std::string message)
 	std::lock_guard<std::mutex> lock(g_mtx);
 
 	std::string timeStr = Internal::Logger::GetTimeStr();
-	std::string levelStr = Internal::Logger::LevelToString(level);
+	std::string levelStr = Internal::Logger::LevelToString((uint8_t)level);
 
-	std::string msg = timeStr + levelStr + message + '\n';
+	std::string msg = timeStr + "[ " + levelStr + " ] " + message + '\n';
 
 	fputs(timeStr.data(), stdout);
 	fputs("[ ", stdout);
-	Internal::Logger::SetColor(Internal::Logger::LevelToColor(level));
+	Internal::Logger::SetColor(Internal::Logger::LevelToColor((uint8_t)level));
 	fputs(levelStr.data(), stdout);
 	Internal::Logger::SetColor(LIGHTGRAY);
 	fputs(" ] ", stdout);
@@ -248,6 +247,11 @@ void AkaNetCore::Logger::PrintRuntimeInfo()
 
 	PRINT_INFO(std::string("File Output : ")
 		+ (g_enableOutput ? "Enabled" : "Disabled"));
+}
+
+DWORD_EX AkaNetCore::Logger::GetLastError()
+{
+	return DWORD_EX(Internal::Core::GetErrNo());
 }
 
 unsigned __stdcall AkaNetCore::Logger::WriteThread(PVOID arg)
