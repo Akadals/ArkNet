@@ -1,5 +1,5 @@
 #pragma once
-#include <AkaNetCore/Core.h>
+#include <AkaNetCore/Platform/Win32/Core.h>
 
 #include <atomic>
 

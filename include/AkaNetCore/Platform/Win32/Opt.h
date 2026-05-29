@@ -1,4 +1,4 @@
-#include <AkaNetCore/Core.h>
+#include <AkaNetCore/Platform/Win32/Core.h>
 #include <filesystem>
 
 #define OPT_LOGGER_ENABLE_COLORED				0

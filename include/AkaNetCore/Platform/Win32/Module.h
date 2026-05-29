@@ -9,7 +9,7 @@
 #ifdef INCL_ACCEPT_MODULE
 #error Another Accept module has already been included.
 #else
-#include <AkaNetCore/Module/Accept/AcceptExStrategy.h>
+#include <AkaNetCore/Platform/Win32/Module/Accept/AcceptExStrategy.h>
 #endif
 #endif
 
@@ -29,4 +29,4 @@
 #endif
 #endif
 
-#include <AkaNetCore/Opt.h>
+#include <AkaNetCore/Platform/Win32/Opt.h>

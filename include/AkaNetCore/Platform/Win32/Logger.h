@@ -1,6 +1,6 @@
 #pragma once
-#include <AkaNetCore/Core.h>
-#include <AkaNetCore/Opt.h>
+#include <AkaNetCore/Platform/Win32/Core.h>
+#include <AkaNetCore/Platform/Win32/Opt.h>
 
 #include <string>
 #include <cstring>

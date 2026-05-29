@@ -1,8 +1,9 @@
 #include <iostream>
-#include <AkaNetCore/AkaNetCore.h>
+#include <AkaNetCore/Platform/Win32/AkaNetCore.h>
 
 #define AKANETCORE_USE_ACCEPT_EX_STRATEGY
-#include <AkaNetCore/Module.h>
+#include <AkaNetCore/Platform/Win32/Module.h>
+
 
 using namespace AkaNetCore;
 
@@ -10,7 +11,7 @@ int main()
 {
 	g_running = true;
 
-	SetOpt(OPT_LOGGER_LOGGING_LEVEL, 1);
+	SetOpt(OPT_LOGGER_LOGGING_LEVEL, 2);
 	SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, true);
 	SetOpt(OPT_LOGGER_FILE_OUTPUT_PATH, "D:/Develop/AkaNetCore_Test_Log");
 	Logger::StartWrite();

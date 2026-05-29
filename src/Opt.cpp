@@ -1,5 +1,5 @@
-#include <AkaNetCore/Opt.h>
-#include <AkaNetCore/Logger.h>
+#include <AkaNetCore/Platform/Win32/Opt.h>
+#include <AkaNetCore/Platform/Win32/Logger.h>
 #include "Internal.h"
 
 

@@ -1,6 +1,6 @@
-#include <AkaNetCore/Module/Accept/AcceptExStrategy.h>
-#include <AkaNetCore/Logger.h>
-#include <AkaNetCore/Opt.h>
+#include <AkaNetCore/Platform/Win32/Module/Accept/AcceptExStrategy.h>
+#include <AkaNetCore/Platform/Win32/Logger.h>
+#include <AkaNetCore/Platform/Win32/Opt.h>
 #include "../Internal.h"
 
 #define DEFAULT_ACCEPT_RESERVATION_COUNT 100;

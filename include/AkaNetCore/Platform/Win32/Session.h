@@ -1,8 +1,8 @@
 #pragma once
-#include <AkaNetCore/Core.h>
-#include <AkaNetCore/IOContext.h>
-#include <AkaNetCore/RingBuffer.h>
-#include <AkaNetCore/Job.h>
+#include <AkaNetCore/Platform/Win32/Core.h>
+#include <AkaNetCore/Platform/Win32/IOContext.h>
+#include <AkaNetCore/Platform/Win32/RingBuffer.h>
+#include <AkaNetCore/Platform/Win32/Job.h>
 
 #include <WinSock2.h>
 #include <mutex>

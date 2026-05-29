@@ -1,4 +1,4 @@
-#include <AkaNetCore/Session.h>
+#include <AkaNetCore/Platform/Win32/Session.h>
 
 AkaNetCore::Session::Session()
 {

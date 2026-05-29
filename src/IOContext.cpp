@@ -1,5 +1,5 @@
-#include <AkaNetCore/IOContext.h>
-#include <AkaNetCore/Session.h>
+#include <AkaNetCore/Platform/Win32/IOContext.h>
+#include <AkaNetCore/Platform/Win32/Session.h>
 
 AkaNetCore::IOContext::IOContext()
 {
