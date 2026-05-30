@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
-
 project(
     AkaNetCore
-    VERSION 0.5.0
+    VERSION 0.5.1
     LANGUAGES CXX
 )
 set(AKANETCORE_VERSION_TAG "dev")
@@ -16,6 +15,7 @@ configure_file(
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(ANC_USE_BUNDLED_OPENSSL "Use bundled OpenSSL" ON)
 option(ANC_USE_BUNDLED_PROTOBUF "Use bundled Protobuf" ON)

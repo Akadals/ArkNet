@@ -6,8 +6,9 @@
 #define OPT_LOGGER_TIME_FORMAT					2
 #define OPT_LOGGER_FILE_OUTPUT_PATH				3
 #define OPT_LOGGER_LOGGING_LEVEL				4
+#define OPT_LOGGER_START_WRITE					5
 
-#define OPT_MODULE_ACCEPT_RESERVATION_COUNT		5
+#define OPT_MODULE_ACCEPT_RESERVATION_COUNT		6
 
 /*
 #==========================Option Type Requirements=========================#
@@ -29,4 +30,5 @@ namespace AkaNetCore
 	void SetOpt(UINT32 opt, std::string optval);
 	void SetOpt(UINT32 opt, const char* optval);
 	void SetOpt(UINT32 opt, int optval);
+	void SetOpt(UINT32 opt);
 }
