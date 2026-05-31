@@ -18,25 +18,12 @@ void AkaNetCore::SetOpt(UINT32 opt, bool optval)
 	}
 }
 
-void AkaNetCore::SetOpt(UINT32 opt, std::filesystem::path optval)
-{
-	switch (opt)
-	{
-	case OPT_LOGGER_FILE_OUTPUT_PATH:
-		Internal::Logger::SetOptValue(opt, &optval);
-		break;
-	default:
-		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option");
-		LOG_DETAIL("The required type is std::filesystem::path");
-		break;
-	}
-}
-
 void AkaNetCore::SetOpt(UINT32 opt, std::string optval)
 {
 	switch (opt)
 	{
-	case OPT_LOGGER_TIME_FORMAT: 
+	case OPT_LOGGER_TIME_FORMAT:
+	case OPT_LOGGER_FILE_OUTPUT_PATH:
 		Internal::Logger::SetOptValue(opt, &optval);
 		break;
 	default:
@@ -51,15 +38,10 @@ void AkaNetCore::SetOpt(UINT32 opt, const char* optval)
 	switch (opt)
 	{
 	case OPT_LOGGER_TIME_FORMAT:
+	case OPT_LOGGER_FILE_OUTPUT_PATH:
 	{
 		std::string str(optval);
 		Internal::Logger::SetOptValue(opt, &str);
-		break;
-	}
-	case OPT_LOGGER_FILE_OUTPUT_PATH:
-	{
-		std::filesystem::path path(optval);
-		Internal::Logger::SetOptValue(opt, &path);
 		break;
 	}
 	default:

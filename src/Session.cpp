@@ -9,7 +9,7 @@ AkaNetCore::Session::Session()
 void AkaNetCore::Session::Init()
 {
 	sock = INVALID_SOCKET;
-	sockAdrEx = {};
+	sock.sockAdrEx = {};
 	timeoutTIme = NULL;
 	alive = false;
 	ioCount = 0x80000000;

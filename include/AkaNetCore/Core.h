@@ -23,8 +23,11 @@
 #define MAX_BUF_SIZE 2048
 
 
+#ifdef _WIN32
 #include <WinSock2.h>
 #include <MSWSock.h>
+#else
+#endif
 
 #include <atomic>
 #include <string>

@@ -26,7 +26,6 @@
 namespace AkaNetCore
 {
 	void SetOpt(UINT32 opt, bool optval);
-	void SetOpt(UINT32 opt, std::filesystem::path optval);
 	void SetOpt(UINT32 opt, std::string optval);
 	void SetOpt(UINT32 opt, const char* optval);
 	void SetOpt(UINT32 opt, int optval);

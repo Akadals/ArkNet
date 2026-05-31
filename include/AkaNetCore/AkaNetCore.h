@@ -7,4 +7,9 @@
 #include <AkaNetCore/Logger.h>
 #include <AkaNetCore/OverlappedExpend.h>
 #include <AkaNetCore/RingBuffer.h>
+
+#ifdef USE_TLS
 #include <AkaNetCore/Session.h>
+#else
+#include <AkaNetCore/TLSSession.h>
+#endif

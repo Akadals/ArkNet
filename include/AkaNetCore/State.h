@@ -14,5 +14,10 @@ namespace AkaNetCore::State
 		BAD,
 	};
 	
-	RunningState GetThreadState(HANDLE handle);
+	struct ThreadState
+	{
+		RunningState running_state;
+	};
+
+	ThreadState GetThreadState(HANDLE handle);
 }

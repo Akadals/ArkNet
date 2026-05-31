@@ -103,7 +103,6 @@ namespace
 	uint8_t							iLoggingLevel	= DEFAULT_LOGGING_LEVEL;
 
 	std::string						sTimeFormat		= DEFAULT_TIME_FORMAT;
-	std::filesystem::path			pOutputPath		= std::filesystem::path(DEFAULT_OUTPUT_PATH);
 	std::string						sOutputPath		= DEFAULT_OUTPUT_PATH;
 	bool							bEnableOutput	= DEFAULT_ENABLE_FILE_OUTPUT;
 	bool							bEnableColored	= DEFAULT_ENABLE_COLORED;
@@ -115,6 +114,8 @@ namespace
 	DWORD							iLastError		= ANCERRGOOD;
 
 	std::mutex						mtx;
+
+	HANDLE							hWorker			= NULL;
 
 	std::string GetTimeStr()
 	{
@@ -174,7 +175,7 @@ namespace
 		if (!AkaNetCore::Logger::OpenLogFile())
 		{
 			outputFile.close();
-			CloseHandle(AkaNetCore::Logger::hWorker);
+			CloseHandle(hWorker);
 			return 0;
 		}
 		while (AkaNetCore::g_running)
@@ -195,14 +196,134 @@ namespace
 			Sleep(10);
 		}
 		outputFile.close();
-		CloseHandle(AkaNetCore::Logger::hWorker);
+		CloseHandle(hWorker);
 		return 0;
 	}
 	void StartThread()
 	{
-		if (AkaNetCore::Logger::hWorker) return;
-		AkaNetCore::Logger::hWorker = (HANDLE)_beginthreadex(NULL, 0, OutputThread, NULL, 0, NULL);
+		if (hWorker) return;
+		hWorker = (HANDLE)_beginthreadex(NULL, 0, OutputThread, NULL, 0, NULL);
 	}
+	const char* GetCpuName()
+	{
+		static char result[128] = {};
+		char brand[49] = {};
+
+#if defined(_MSC_VER)
+
+		int cpuInfo[4];
+
+		__cpuid(cpuInfo, 0x80000002);
+		memcpy(brand + 0, cpuInfo, 16);
+
+		__cpuid(cpuInfo, 0x80000003);
+		memcpy(brand + 16, cpuInfo, 16);
+
+		__cpuid(cpuInfo, 0x80000004);
+		memcpy(brand + 32, cpuInfo, 16);
+
+#else
+
+		unsigned int eax, ebx, ecx, edx;
+
+		__get_cpuid(0x80000002, &eax, &ebx, &ecx, &edx);
+		memcpy(brand + 0, &eax, 4);
+		memcpy(brand + 4, &ebx, 4);
+		memcpy(brand + 8, &ecx, 4);
+		memcpy(brand + 12, &edx, 4);
+
+		__get_cpuid(0x80000003, &eax, &ebx, &ecx, &edx);
+		memcpy(brand + 16, &eax, 4);
+		memcpy(brand + 20, &ebx, 4);
+		memcpy(brand + 24, &ecx, 4);
+		memcpy(brand + 28, &edx, 4);
+
+		__get_cpuid(0x80000004, &eax, &ebx, &ecx, &edx);
+		memcpy(brand + 32, &eax, 4);
+		memcpy(brand + 36, &ebx, 4);
+		memcpy(brand + 40, &ecx, 4);
+		memcpy(brand + 44, &edx, 4);
+
+#endif
+		unsigned threads = std::thread::hardware_concurrency();
+
+		snprintf(
+			result,
+			sizeof(result),
+			"%s %u Thread",
+			brand,
+			threads
+		);
+
+		return result;
+	}
+	const char* GetRamSize()
+	{
+		static char result[32];
+
+		uint64_t ramBytes = 0;
+
+#ifdef _WIN32
+
+		GetPhysicallyInstalledSystemMemory(&ramBytes);
+
+#else
+
+		ramBytes =
+			static_cast<uint64_t>(sysconf(_SC_PHYS_PAGES)) *
+			static_cast<uint64_t>(sysconf(_SC_PAGE_SIZE));
+
+#endif
+
+		snprintf(
+			result,
+			sizeof(result),
+			"%llu MB",
+			ramBytes / 1024
+		);
+
+		return result;
+	}
+
+	inline static const char* registry[AkaNetCore::InfoKey::COUNT] =
+	{
+		AKANETCORE_VERSION,
+		"4.0.0", //need including openssl
+		"35.0", //need including protobuf
+		AKANETCORE_BUILD_DATE,
+#ifdef _DEBUG
+		"Debug",
+#else
+		"Release",
+#endif
+#ifdef _MSC_VER
+			"MSVC",
+#endif
+#if CPP_STANDARD >= 202302L
+			"C++23",
+#elif CPP_STANDARD >= 202002L
+			 "C++20",
+#elif CPP_STANDARD >= 201703L
+			"C++17",
+#elif CPP_STANDARD >= 201402L
+			"C++14",
+#elif CPP_STANDARD >= 201103L
+			"C++11",
+#else
+			"Pre-C++11",
+#endif
+		GET_STRING(DEFAULT_LOGGING_LEVEL),
+		DEFAULT_TIME_FORMAT,
+		DEFAULT_OUTPUT_PATH,
+		DEFAULT_ENABLE_FILE_OUTPUT ? "Enabled" : "Disabled",
+		DEFAULT_ENABLE_COLORED ? "Enabled" : "Disabled",
+		GetCpuName(),
+		GetRamSize(),
+		"Windows 11 Pro 25H2",
+		"x64",
+		"DESKTOP-ABCDEF",
+		"1234",
+	};
 
 }
 void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
@@ -211,21 +332,21 @@ void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
 	{
 	case OPT_LOGGER_TIME_FORMAT:
 	{
-		AkaNetCore::Logger::RuntimeInfo::time_format = 
+		registry[TIME_FORMAT] =
 			(sTimeFormat = *static_cast <const std::string*>(param)).data();
 		LOG_DETAIL(std::string("OPT_LOGGER_TIME_FORMAT has been set to ") + sTimeFormat);
 		break;
 	}
 	case OPT_LOGGER_ENABLE_FILE_OUTPUT:
 	{
-		if (AkaNetCore::Logger::hWorker)
+		if (hWorker)
 		{
 			LOG_WARNING("Cannot change OPT_LOGGER_ENABLE_FILE_OUTPUT at present");
 			SetLastError(ANCERROPTLOCK);
 		}
 		else
 		{
-			AkaNetCore::Logger::RuntimeInfo::output_enable = 
+			registry[OUTPUT_ENABLE] =
 				(bEnableOutput = *static_cast<const bool*>(param)) ? "Enabled" : "Disabled";
 			LOG_DETAIL(std::string("OPT_LOGGER_ENABLE_FILE_OUTPUT has been set to ") + (bEnableOutput ? "true" : "false"));
 		}
@@ -238,35 +359,38 @@ void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
 			LOG_WARNING("Cannot start writing because OPT_LOGGER_ENABLE_FILE_OUTPUT is false");
 			SetLastError(ANCERROPTLOCK);
 		}
-		else if (!AkaNetCore::Logger::hWorker) StartThread();
+		else if (!hWorker) StartThread();
 		break;
 	}
 	case OPT_LOGGER_FILE_OUTPUT_PATH:
 	{
-		if (AkaNetCore::Logger::hWorker)
+		if (hWorker)
 		{
 			LOG_WARNING("Cannot change OPT_LOGGER_FILE_OUTPUT_PATH at present");
 			SetLastError(ANCERROPTLOCK);
 		}
 		else
 		{
-			sOutputPath = (pOutputPath = *static_cast<const std::filesystem::path*>(param)).string();
-			AkaNetCore::Logger::RuntimeInfo::output_path = sOutputPath.data();
-			LOG_DETAIL(std::string("OPT_LOGGER_FILE_OUTPUT_PATH has been set to ") + pOutputPath.string());
+			sOutputPath = *static_cast<const std::string*>(param);
+			registry[OUTPUT_PATH] = sOutputPath.data();
+			LOG_DETAIL(std::string("OPT_LOGGER_FILE_OUTPUT_PATH has been set to ") + sOutputPath);
 		}
 		break;
 	}
 	case OPT_LOGGER_LOGGING_LEVEL:
 	{
 		UINT8 level = *static_cast<const UINT8*>(param);
-		AkaNetCore::Logger::RuntimeInfo::logging_level = iLoggingLevel = level > 4 ? 4 : level;
+		iLoggingLevel = level > 4 ? 4 : level;
+		static char buf[8];
+		snprintf(buf, sizeof(buf), "%d", iLoggingLevel);
+		registry[LOGGING_LEVEL] = buf;
 		LOG_DETAIL(std::string("OPT_LOGGER_LOGGING_LEVEL has been set to ") + std::to_string(iLoggingLevel));
 		break;
 	}
 	case OPT_LOGGER_ENABLE_COLORED:
 	{
 		bEnableColored = *static_cast<const bool*>(param);
-		AkaNetCore::Logger::RuntimeInfo::colored_enable = bEnableColored ? "Enabled" : "Disabled";
+		registry[COLORED_ENABLE] = bEnableColored ? "Enabled" : "Disabled";
 		LOG_DETAIL(std::string("OPT_LOGGER_ENABLE_COLORED has been set to ") + (bEnableColored ? "true" : "false"));
 		break;
 	}
@@ -281,7 +405,9 @@ bool AkaNetCore::Logger::OpenLogFile()
 		SetLastError(ANCERRFILEOPEN);
 	}
 
-	if (pOutputPath.empty())
+	auto path = std::filesystem::path(sOutputPath);
+
+	if (path.empty())
 	{
 		LOG_ERROR("Invalid output file path");
 		SetLastError(ANCERRBADPATH);
@@ -292,7 +418,7 @@ bool AkaNetCore::Logger::OpenLogFile()
 
 	try
 	{
-	if (!exists(pOutputPath)) create_directories(pOutputPath);
+	if (!exists(path)) create_directories(path);
 	}
 	catch (std::exception e)
 	{
@@ -313,7 +439,7 @@ bool AkaNetCore::Logger::OpenLogFile()
 
 	std::string str = oss.str() + ".log";
 
-	std::filesystem::path filePath = pOutputPath / str;
+	std::filesystem::path filePath = path / str;
 
 	outputFile.open(filePath, std::ios::out | std::ios::app);
 
@@ -321,7 +447,7 @@ bool AkaNetCore::Logger::OpenLogFile()
 	{
 		LOG_EXCAPTION("Cannot open " + str + " file");
 		SetLastError(ANCERRFILEOPEN);
-		LOG_INFO("Automatically changes the s_enableFileOutput value to false.");
+		LOG_INFO("Automatically changes the OPT_LOGGER_ENABLE_FILE_OUTPUT value to false.");
 		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
 		return false;
 	}
@@ -354,37 +480,55 @@ void AkaNetCore::Logger::Print(InfoType type)
 {
 	if (HARDWARE_INFO & type)
 	{
-		//Hardware info
+		LOG_INFO("========== Hardware Info =========");
+		LOG_INFO(std::string("CPU : ")
+			+ registry[CPU_INFO]);
+		LOG_INFO(std::string("RAM : ")
+			+ registry[RAM_INFO]);
+	}
+	if (SYS_INFO & type)
+	{
+		LOG_INFO("=========== System Info ==========");
+		LOG_INFO(std::string("OS : ")
+			+ registry[OS_INFO]);
+		LOG_INFO(std::string("Architecture  : ")
+			+ registry[ARCHITECTURE_INFO]);
+		LOG_INFO(std::string("Hostname  : ")
+			+ registry[HOST_INFO]);
+		LOG_INFO(std::string("Process ID  : ")
+			+ registry[PROCESS_ID]);
 	}
 	if (BUILD_INFO & type)
 	{
-		LOG_INFO("Build Info");
+		LOG_INFO("=========== Build Info ===========");
 		LOG_INFO(std::string("Version : ")
-			+ BuildInfo::version);
+			+ registry[VERSION]);
+		LOG_INFO(std::string("OpenSSL Version : ")
+			+ registry[OPENSSL_VERSION]);
+		LOG_INFO(std::string("Protobuf Version : ")
+			+ registry[PROTOBUF_VERSION]);
 		LOG_INFO(std::string("Build Date : ")
-			+ BuildInfo::build_date);
+			+ registry[BUILD_DATE]);
 		LOG_INFO(std::string("Build Type : ")
-			+ BuildInfo::build_type);
-		LOG_INFO(std::string("Platform : ")
-			+ BuildInfo::platform);
+			+ registry[BUILD_TYPE]);
 		LOG_INFO(std::string("C++ Standard : ")
-			+ BuildInfo::standard);
+			+ registry[STANDARD]);
 		LOG_INFO(std::string("Compiler : ")
-			+ BuildInfo::compiler);
+			+ registry[COMPILER]);
 	}
 	if (RUNTIME_INFO & type)
 	{
-		LOG_INFO("Runtime Info");
+		LOG_INFO("========== Runtime Info ==========");
 		LOG_INFO(std::string("Logging Level : ")
-			+ std::to_string(RuntimeInfo::logging_level));
+			+ registry[LOGGING_LEVEL]);
 		LOG_INFO(std::string("Log Time Format : ")
-			+ RuntimeInfo::time_format);
+			+ registry[TIME_FORMAT]);
 		LOG_INFO(std::string("Enable Colored : ")
-			+ RuntimeInfo::colored_enable);
+			+ registry[COLORED_ENABLE]);
 		LOG_INFO(std::string("Output Enable : ")
-			+ RuntimeInfo::output_enable);
+			+ registry[OUTPUT_ENABLE]);
 		LOG_INFO(std::string("Output Path : ")
-			+ RuntimeInfo::output_path);
+			+ registry[OUTPUT_PATH]);
 	}
 }
 
@@ -395,4 +539,9 @@ DWORD AkaNetCore::Logger::GetLastError()
 void AkaNetCore::Internal::Logger::SetLastError(DWORD err)
 {
 	iLastError = err;
+}
+
+const char* AkaNetCore::GetRegistry(InfoKey key)
+{
+	return registry[key];
 }

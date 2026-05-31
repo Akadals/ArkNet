@@ -3,24 +3,23 @@
 #include <AkaNetCore/IOContext.h>
 #include <AkaNetCore/RingBuffer.h>
 #include <AkaNetCore/Job.h>
-#include <AkaNetCore/SocketExpend.h>
+#include <AkaNetCore/Session.h>
 
 #include <WinSock2.h>
 #include <mutex>
 #include <atomic>
 #include <queue>
 
-#define MAX_CTX_POOL_SIZE 0x8
-#define MAX_JOB_POOL_SIZE 0x10
 
 namespace AkaNetCore
 {
-	typedef class Session				SESSION, * PSESSION;
+	typedef class TLSSession				TLS_SESSION, * PTLS_SESSION;
 
-	class alignas(64) Session : public LockFreePoolAvailable
+	class alignas(64) TLSSession : public Session
 	{
 	public:
-		SOCKET_EX sock = INVALID_SOCKET;
+		SOCKET sock = INVALID_SOCKET;
+		SOCKADDR_EX sockAdrEx = {};
 
 		DWORD timeoutTIme = NULL;
 
@@ -39,7 +38,7 @@ namespace AkaNetCore
 		alignas(64) DWORD ioCount = 0x80000000;
 		alignas(64) DWORD ioFlag = 0;
 	public:
-		Session();
+		TLSSession();
 		void Init() override;
 		void Init(SOCKET sock);
 	};
