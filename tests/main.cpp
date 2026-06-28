@@ -4,6 +4,8 @@
 #include <AkaNetCore/Module.h>
 #include <AkaNetCore/Opt.h>
 
+#include <AkaNetCore/CommandManager.h>
+
 
 using namespace AkaNetCore;
 

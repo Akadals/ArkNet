@@ -12,7 +12,7 @@ void AkaNetCore::SetOpt(UINT32 opt, bool optval)
 		Internal::Logger::SetOptValue(opt, &optval);
 		break;
 	default:
-		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option");
+		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option", ANCERRGOOD);
 		LOG_DETAIL("The required type is std::filesystem::path");
 		break;
 	}
@@ -27,7 +27,7 @@ void AkaNetCore::SetOpt(UINT32 opt, std::string optval)
 		Internal::Logger::SetOptValue(opt, &optval);
 		break;
 	default:
-		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option");
+		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option", ANCERRGOOD);
 		LOG_DETAIL("The required type is std::string"); 
 		break;
 	}
@@ -45,7 +45,7 @@ void AkaNetCore::SetOpt(UINT32 opt, const char* optval)
 		break;
 	}
 	default:
-		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option");
+		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option", ANCERRGOOD);
 		LOG_DETAIL("The required type is const char*");
 		break;
 	}
@@ -62,7 +62,7 @@ void AkaNetCore::SetOpt(UINT32 opt, int optval)
 		//Internal::Module::Accept::SetOptValue(opt, &optval);
 		break;
 	default:
-		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option");
+		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option", ANCERRGOOD);
 		LOG_DETAIL("The required type is int");
 		break;
 	}
@@ -75,7 +75,7 @@ void AkaNetCore::SetOpt(UINT32 opt)
 		Internal::Logger::SetOptValue(opt, NULL);
 		break;
 	default:
-		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option");
+		LOG_ERROR("SetOpt type mismatch or Unallowed bitflag option", ANCERRGOOD);
 		break;
 	}
 }

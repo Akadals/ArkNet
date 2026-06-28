@@ -1,6 +1,6 @@
 add_executable(AkaNetCoreTests
-    main.cpp
-)
+    ConsoleTest.cpp
+ )
 
 target_link_libraries(AkaNetCoreTests
     PRIVATE

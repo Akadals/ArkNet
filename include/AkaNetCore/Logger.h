@@ -44,22 +44,77 @@
 
 #define DEFAULT_LOGGING_LEVEL_STR STR(DEFAULT_LOGGING_LEVEL)
 
-#define LOG(type,log)		AkaNetCore::Logger::Print(type, log);
-#define LOG_UNKNOWN(log)	AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_UNKNOWN,	log)
-#define LOG_INFO(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_INFO,		log)
-#define LOG_DETAIL(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_DETAIL,	log)
-#define LOG_WARNING(log)	AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_WARNING,	log)
-#define LOG_ERROR(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_ERROR,		log)
-#define LOG_EXCAPTION(log)	AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_EXCAPTION, log)
-#define LOG_MESSAGE(log)	AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_MESSAGE,	log)
-#define LOG_CRASH(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_CRASH,		log)
-#define LOG_TRACE(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_TRACE,		log)
+#define ERROR_LOG(type,log)			AkaNetCore::Logger::Print(type, log);
+#define LOG_UNKNOWN(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_UNKNOWN,	log)
+#define LOG_INFO(log)			AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_INFO,		log)
+#define LOG_DETAIL(log)			AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_DETAIL,	log)
+#define LOG_WARNING(log, err)	AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_WARNING,	log, err)
+#define LOG_WARNING(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_WARNING,	log)
+#define LOG_ERROR(log, err)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_ERROR,		log, err)
+#define LOG_ERROR(log)			AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_ERROR,		log)
+#define LOG_EXCAPTION(log, err)	AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_EXCAPTION, log, err)
+#define LOG_EXCAPTION(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_EXCAPTION, log)
+#define LOG_MESSAGE(log)		AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_MESSAGE,	log)
+#define LOG_CRASH(log)			AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_CRASH,		log)
+#define LOG_TRACE(log)			AkaNetCore::Logger::Print(AkaNetCore::Logger::LogType::LEVEL_TRACE,		log)
 
 #define DEFAULT_LOGGING_LEVEL 4
 #define DEFAULT_TIME_FORMAT "[%Y-%m-%d %H:%M:%S]"
 #define DEFAULT_ENABLE_FILE_OUTPUT true
 #define DEFAULT_ENABLE_COLORED true
 #define DEFAULT_OUTPUT_PATH "Log/"
+
+#define ANCBASEERR	100000
+
+#define ANCERRGOOD				0
+#define ANCERRINVALTYPE			(ANCBASEERR + 1)
+#define ANCERRINVALINCL			(ANCBASEERR + 2)
+#define ANCERRINVALSESH			(ANCBASEERR + 3)
+#define ANCERRBADHANDSHAKE		(ANCBASEERR + 4)
+#define ANCERRBADCONN			(ANCBASEERR + 5)
+#define ANCERRFIREWALLBLOCK		(ANCBASEERR + 6)
+#define ANCERRAUTHORITY			(ANCBASEERR + 7)
+#define ANCERRBADIP				(ANCBASEERR + 8)
+#define ANCERRBADPORT			(ANCBASEERR + 9)
+#define ANCERRNOTALLOW			(ANCBASEERR + 10)
+#define ANCERRBADREQ			(ANCBASEERR + 11)
+#define ANCERRBADTLSCRT			(ANCBASEERR + 12)
+#define ANCERRBADTLSKEY			(ANCBASEERR + 13)
+#define ANCERRBADTRAFFIC		(ANCBASEERR + 14)
+#define ANCERRBADHARDWARE		(ANCBASEERR + 15)
+#define ANCERRINVALSTREAM		(ANCBASEERR + 16)
+#define ANCERRBADPATH			(ANCBASEERR + 17)
+#define ANCERRFILEOPEN			(ANCBASEERR + 18)
+#define ANCERROPTLOCK			(ANCBASEERR + 19)
+#define ANCERRCMDREGIST			(ANCBASEERR + 20)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
+#define ANCERR			(ANCBASEERR + 0)
 
 namespace AkaNetCore
 {
@@ -114,7 +169,7 @@ namespace AkaNetCore
 
 		bool OpenLogFile();
 
-		void Print(LogType type, std::string log = "");
+		void Print(LogType type, std::string log = "", DWORD lastErr = 0);
 		void Print(InfoType type);
 
 		DWORD GetLastError();

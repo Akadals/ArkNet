@@ -19,7 +19,7 @@ namespace AkaNetCore
 
 	class alignas(64) Session : public LockFreePoolAvailable
 	{
-	public:
+	private:
 		SOCKET_EX sock = INVALID_SOCKET;
 
 		DWORD timeoutTIme = NULL;

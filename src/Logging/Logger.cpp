@@ -3,58 +3,8 @@
 #include <AkaNetCore/Core.h>
 #include "../Internal.h"
 
-#define ANCBASEERR	100000
-
-#define ANCERRGOOD				0
-#define ANCERRINVALTYPE			(ANCBASEERR + 1)
-#define ANCERRINVALINCL			(ANCBASEERR + 2)
-#define ANCERRINVALSESH			(ANCBASEERR + 3)
-#define ANCERRBADHANDSHAKE		(ANCBASEERR + 4)
-#define ANCERRBADCONN			(ANCBASEERR + 5)
-#define ANCERRFIREWALLBLOCK		(ANCBASEERR + 6)
-#define ANCERRAUTHORITY			(ANCBASEERR + 7)
-#define ANCERRBADIP				(ANCBASEERR + 8)
-#define ANCERRBADPORT			(ANCBASEERR + 9)
-#define ANCERRNOTALLOW			(ANCBASEERR + 10)
-#define ANCERRBADREQ			(ANCBASEERR + 11)
-#define ANCERRBADTLSCRT			(ANCBASEERR + 12)
-#define ANCERRBADTLSKEY			(ANCBASEERR + 13)
-#define ANCERRBADTRAFFIC		(ANCBASEERR + 14)
-#define ANCERRBADHARDWARE		(ANCBASEERR + 15)
-#define ANCERRINVALSTREAM		(ANCBASEERR + 16)
-#define ANCERRBADPATH			(ANCBASEERR + 17)
-#define ANCERRFILEOPEN			(ANCBASEERR + 18)
-#define ANCERROPTLOCK			(ANCBASEERR + 19)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-#define ANCERR			(ANCBASEERR + 0)
-
+//Test
+#include "../Platform/Windows/Console/ConsoleManager.h"
 
 namespace
 {
@@ -339,11 +289,7 @@ void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
 	}
 	case OPT_LOGGER_ENABLE_FILE_OUTPUT:
 	{
-		if (hWorker)
-		{
-			LOG_WARNING("Cannot change OPT_LOGGER_ENABLE_FILE_OUTPUT at present");
-			SetLastError(ANCERROPTLOCK);
-		}
+		if (hWorker) LOG_WARNING("Cannot change OPT_LOGGER_ENABLE_FILE_OUTPUT at present", ANCERROPTLOCK);
 		else
 		{
 			registry[OUTPUT_ENABLE] =
@@ -354,21 +300,13 @@ void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
 	}
 	case OPT_LOGGER_START_WRITE:
 	{
-		if (!bEnableOutput)
-		{
-			LOG_WARNING("Cannot start writing because OPT_LOGGER_ENABLE_FILE_OUTPUT is false");
-			SetLastError(ANCERROPTLOCK);
-		}
+		if (!bEnableOutput) LOG_WARNING("Cannot start writing because OPT_LOGGER_ENABLE_FILE_OUTPUT is false", ANCERROPTLOCK);
 		else if (!hWorker) StartThread();
 		break;
 	}
 	case OPT_LOGGER_FILE_OUTPUT_PATH:
 	{
-		if (hWorker)
-		{
-			LOG_WARNING("Cannot change OPT_LOGGER_FILE_OUTPUT_PATH at present");
-			SetLastError(ANCERROPTLOCK);
-		}
+		if (hWorker) LOG_WARNING("Cannot change OPT_LOGGER_FILE_OUTPUT_PATH at present", ANCERROPTLOCK);
 		else
 		{
 			sOutputPath = *static_cast<const std::string*>(param);
@@ -399,18 +337,13 @@ void AkaNetCore::Internal::Logger::SetOptValue(UINT32 opt, const void* param)
 
 bool AkaNetCore::Logger::OpenLogFile()
 {
-	if (outputFile.is_open())
-	{
-		LOG_ERROR("The log file is already open.");
-		SetLastError(ANCERRFILEOPEN);
-	}
+	if (outputFile.is_open()) LOG_ERROR("The log file is already open.", ANCERRFILEOPEN);
 
 	auto path = std::filesystem::path(sOutputPath);
 
 	if (path.empty())
 	{
-		LOG_ERROR("Invalid output file path");
-		SetLastError(ANCERRBADPATH);
+		LOG_ERROR("Invalid output file path", ANCERRBADPATH);
 		LOG_INFO("It is set to the default output path, Log\\");
 		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
 		return false;
@@ -422,8 +355,7 @@ bool AkaNetCore::Logger::OpenLogFile()
 	}
 	catch (std::exception e)
 	{
-		LOG_EXCAPTION("Invalid output file path");
-		SetLastError(ANCERRBADPATH);
+		LOG_EXCAPTION("Invalid output file path", ANCERRBADPATH);
 		return false;
 	}
 
@@ -445,8 +377,7 @@ bool AkaNetCore::Logger::OpenLogFile()
 
 	if (!outputFile.is_open())
 	{
-		LOG_EXCAPTION("Cannot open " + str + " file");
-		SetLastError(ANCERRFILEOPEN);
+		LOG_EXCAPTION("Cannot open " + str + " file", ANCERRFILEOPEN);
 		LOG_INFO("Automatically changes the OPT_LOGGER_ENABLE_FILE_OUTPUT value to false.");
 		SetOpt(OPT_LOGGER_ENABLE_FILE_OUTPUT, false);
 		return false;
@@ -454,26 +385,34 @@ bool AkaNetCore::Logger::OpenLogFile()
 	return true;
 }
 
-void AkaNetCore::Logger::Print(LogType type, std::string log)
+void AkaNetCore::Logger::Print(LogType type, std::string log, DWORD lastErr)
 {
 	if (iLoggingLevel == 0) return;
 	if (!(mask[iLoggingLevel] & static_cast<uint32_t>(type))) return;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
+	auto errMask =
+		static_cast<uint32_t>(LogType::LEVEL_WARNING) |
+		static_cast<uint32_t>(LogType::LEVEL_ERROR) |
+		static_cast<uint32_t>(LogType::LEVEL_EXCAPTION);
+
+	if (errMask & static_cast<uint32_t>(type)) Internal::Logger::SetLastError(lastErr);
+
 	std::string timeStr = GetTimeStr();
 	std::string typeStr = GetTypeStr(type);
 	std::string logStr = timeStr + "[ " + typeStr + " ] " + log + '\n';
 
-	fputs(timeStr.data(), stdout);
-	fputs("[ ", stdout);
-	SetColor(GetTypeColor(type));
-	fputs(typeStr.data(), stdout);
-	SetColor(LIGHTGRAY);
-	fputs(" ] ", stdout);
-	fputs(log.data(), stdout);
-	fputc('\n', stdout);
+	//fputs(timeStr.data(), stdout);
+	//fputs("[ ", stdout);
+	//SetColor(GetTypeColor(type));
+	//fputs(typeStr.data(), stdout);
+	//SetColor(LIGHTGRAY);
+	//fputs(" ] ", stdout);
+	//fputs(log.data(), stdout);
+	//fputc('\n', stdout);
 
+	//RegistLog(logStr);
 	if (bEnableOutput) logQueue.push(logStr);
 }
 void AkaNetCore::Logger::Print(InfoType type)

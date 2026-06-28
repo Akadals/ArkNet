@@ -1,5 +1,5 @@
 #pragma once
-
+#include <Windows.h>
 namespace AkaNetCore::State
 {
 	enum RunningState : uint8_t
@@ -18,6 +18,12 @@ namespace AkaNetCore::State
 	{
 		RunningState running_state;
 	};
+
+	typedef struct HandleExpend
+	{
+		HANDLE handle;
+		const char* name = "Unknown";
+	} HANDLE_EX, * PHANDLE_EX;
 
 	ThreadState GetThreadState(HANDLE handle);
 }
