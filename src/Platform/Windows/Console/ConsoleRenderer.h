@@ -3,6 +3,8 @@
 #include "InputHandler.h"
 #include <vector>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 void render_frame();
 void render_state();

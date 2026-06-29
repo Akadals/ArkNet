@@ -1,6 +1,10 @@
 #pragma once
 #include <queue>
 #include <string>
+#include <thread>
+#include <psapi.h>
+#include <vector>
+#include <sstream>
 
 #define ERROR_LOG(x) auto_error_logging(x)
 
@@ -14,6 +18,14 @@ public:
 
 inline Log internalLog;
 
-std::string GetLastErrorAsString();
+std::vector<std::wstring> split(std::wstring t_input, wchar_t t_delimiter);
 
-void auto_error_logging(BOOL cond);
+std::string get_last_error_as_string();
+
+void auto_error_logging(BOOL t_cond);
+
+std::wstring get_cpu_name();
+DWORD get_cpu_core_count();
+DWORD get_cpu_thread_count();
+double get_memory_usage(SHORT t_unit = 0);
+double get_memory_size(SHORT t_unit = 0);

@@ -1,6 +1,7 @@
 #include "ConsoleRenderer.h"
 
-constexpr SHORT STATE_BOX_SIZE = 20;
+constexpr SHORT STATE_BOX_SIZE = 30;
+constexpr SHORT MIN_STATE_BOX_SIZE = 27;
 
 namespace
 {
@@ -17,59 +18,93 @@ namespace
 void render_frame()
 {
 	COORD size = get_size();
-	int i;
-	g_frameBuffer.clear();
-	g_frameBuffer.assign(
-		size.Y,
-		std::wstring(size.X, L' ')
-	);
+	SHORT i;
 
-	g_frameBuffer[0][0] = frameChars[2];
+	write({ 0,0 }, { &frameChars[2],1 });
 	for (i = 1; i < size.X - STATE_BOX_SIZE;)
-		g_frameBuffer[0][i++] = frameChars[0];
-	g_frameBuffer[0][i++] = frameChars[7];
+		write({ i++,0 }, { &frameChars[0],1 });
+	write({ i++,0 }, { &frameChars[7],1 });
 	for (; i < size.X - 1;)
-		g_frameBuffer[0][i++] = frameChars[0];
-	g_frameBuffer[0][size.X - 1] = frameChars[3];
-
-	g_frameBuffer[size.Y - 3][0] = frameChars[6];
+		write({ i++,0 }, { &frameChars[0],1 });
+	write({ i++,0 }, { &frameChars[3],1 });
+	write({ 0, static_cast<SHORT>(size.Y - 3) }, 
+		{ &frameChars[6],1 });
 	for (i = 1; i < size.X - STATE_BOX_SIZE;)
-		g_frameBuffer[size.Y - 3][i++] = frameChars[0];
-	g_frameBuffer[size.Y - 3][i++] = frameChars[9];
+		write({ i++, static_cast<SHORT>(size.Y - 3) }, 
+			{ &frameChars[0],1 });
+	write({ i++, static_cast<SHORT>(size.Y - 3) }, 
+		{ &frameChars[9],1 });
 	for (; i < size.X - 1;)
-		g_frameBuffer[size.Y - 3][i++] = frameChars[0];
-	g_frameBuffer[size.Y - 3][size.X - 1] = frameChars[8];
-
-	g_frameBuffer[size.Y-1][0] = frameChars[5];
+		write({ i++, static_cast<SHORT>(size.Y - 3) }, 
+			{ &frameChars[0],1 });
+	write({ static_cast<SHORT>(size.X - 1), 
+		static_cast<SHORT>(size.Y - 3) }, 
+		{ &frameChars[8],1 });
+	write({ 0, static_cast<SHORT>(size.Y - 1) }, 
+		&frameChars[5]);
 	for (i = 1; i < size.X - 1;)
-		g_frameBuffer[size.Y - 1][i++] = frameChars[0];
-	g_frameBuffer[size.Y - 1][size.X - 1] = frameChars[4];
+		write({ i++, static_cast<SHORT>(size.Y - 1) }, 
+			{ &frameChars[0],1 });
+	write({ static_cast<SHORT>(size.X - 1), 
+		static_cast<SHORT>(size.Y - 1) }, 
+		{ &frameChars[4],1 });
 
-	for (int h = 0; ++h < size.Y - 1;)
+
+	for (SHORT h = 0; ++h < size.Y - 1;)
 	{
 		if (h == size.Y - 3) continue;
 		if (h == size.Y - 2)
 		{
-			g_frameBuffer[h][1] = L' ';
-			g_frameBuffer[h][2] = L'>';
-			g_frameBuffer[h][0] =
-				g_frameBuffer[h][size.X - 1] = frameChars[1];
+			write({ 1, h }, L" > ");
+			write({ 0,h }, { &frameChars[1],1 });
+			write({ static_cast<SHORT>(size.X - 1),h }, 
+				{ &frameChars[1],1 });
 			continue;
 		}
-		g_frameBuffer[h][0] =
-			g_frameBuffer[h][size.X - STATE_BOX_SIZE] =
-			g_frameBuffer[h][size.X - 1] = frameChars[1];
+		write({ 0,h }, { &frameChars[1],1 });
+		write({ static_cast<SHORT>(size.X - STATE_BOX_SIZE),h }, 
+			{ &frameChars[1],1 });
+		write({ static_cast<SHORT>(size.X - 1),h }, 
+			{ &frameChars[1],1 });
 	}
-
-	for (SHORT i = 0; i < size.Y; i++)
-		write({ 0,i }, g_frameBuffer[i]);
 }
 
 void render_state()
 {
 	COORD size = get_size();
-	write({ static_cast<SHORT>(size.X - STATE_BOX_SIZE / 2 - 4),1 },
-		L"[STATUS]");
+	COORD len;
+	SHORT start = static_cast<SHORT>(size.X - STATE_BOX_SIZE + 2);
+
+	write({ static_cast<SHORT>(size.X - STATE_BOX_SIZE / 2 - 7),1 },
+		L"[HARDWARE INFO]");
+	write({ static_cast<SHORT>(size.X - STATE_BOX_SIZE + 2),2 }, L"CPU: ");
+	len = write(
+		{ static_cast<SHORT>(start + 5),2 },
+		get_cpu_name(),
+		static_cast<SHORT>(STATE_BOX_SIZE - 9));
+
+	std::wostringstream memSize;
+	memSize << std::fixed << std::setprecision(1) << get_memory_size(2);
+	std::wstring sizeResult = memSize.str();
+
+	std::wostringstream memUsage;
+	memUsage << std::fixed << std::setprecision(1) << get_memory_usage(1);
+	std::wstring usageResult = memUsage.str();
+
+	write({ start ,
+		static_cast<SHORT>(4 + len.Y) },
+		L"Memory Size: ");
+	write({ static_cast<SHORT>(start + 13) ,
+		static_cast<SHORT>(4 + len.Y) },
+		sizeResult + L" MB",
+		static_cast<SHORT>(STATE_BOX_SIZE - 17));
+	write({ start ,
+		static_cast<SHORT>(6 + len.Y) },
+		L"Memory Usage: ");
+	len = write({ static_cast<SHORT>(start + 14) ,
+		static_cast<SHORT>(6 + len.Y) },
+		usageResult + L" KB",
+		static_cast<SHORT>(STATE_BOX_SIZE - 18));
 }
 
 

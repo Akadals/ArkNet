@@ -1,14 +1,8 @@
 #include "ConsoleBuffer.h"
-#include "../../../Logging/Internal/Logger.h"
 
 namespace
 {
 	constexpr size_t CONSOLE_COUNT = 2;
-
-	constexpr WORD DEFAULT_ATTRIBUTE =
-		FOREGROUND_RED |
-		FOREGROUND_GREEN |
-		FOREGROUND_BLUE;
 
 	struct ScreenBuffer
 	{
@@ -42,10 +36,12 @@ void initialize_buffer()
 
 	ERROR_LOG(GetConsoleMode(g_console[0].handle, &mode));
 	mode &= ~ENABLE_WRAP_AT_EOL_OUTPUT;
+	mode &= ~ENABLE_PROCESSED_OUTPUT;
 	ERROR_LOG(SetConsoleMode(g_console[0].handle, mode));
 
 	ERROR_LOG(GetConsoleMode(g_console[1].handle, &mode));
 	mode &= ~ENABLE_WRAP_AT_EOL_OUTPUT;
+	mode &= ~ENABLE_PROCESSED_OUTPUT;
 	ERROR_LOG(SetConsoleMode(g_console[1].handle, mode));
 
 	CONSOLE_CURSOR_INFO ci{};
@@ -145,14 +141,10 @@ void set_console_size(COORD t_size)
 		static_cast<SHORT>(t_size.Y - 1)
 	};
 
-	bool isExpand =
-		(t_size.X > g_consoleSize.X) ||
-		(t_size.Y > g_consoleSize.Y);
-
 	for (auto& console : g_console)
 	{
 		ERROR_LOG(SetConsoleCursorPosition(console.handle, { 0,0 }));
-		if (isExpand)
+		if ((t_size.X > g_consoleSize.X) || (t_size.Y > g_consoleSize.Y))
 		{
 			ERROR_LOG(SetConsoleScreenBufferSize(console.handle, t_size));
 			ERROR_LOG(SetConsoleWindowInfo(console.handle, TRUE, &rect));
@@ -171,49 +163,131 @@ void set_console_size(COORD t_size)
 		static_cast<size_t>(t_size.Y);
 
 	for (auto& console : g_console)
-		console.cells.assign(cellCount, CHAR_INFO{
+		std::vector<CHAR_INFO>(cellCount, CHAR_INFO{
 			{ L' ' },
 			DEFAULT_ATTRIBUTE
-			});
+			}).swap(console.cells);
 	return;
 }
 
-void write(COORD t_position, std::wstring_view t_text, size_t t_consoleIndex, WORD t_attribute)
+COORD write(
+	COORD t_position,
+	std::wstring_view t_text,
+	size_t t_consoleIndex, 
+	WORD t_attribute,
+	SHORT t_lineBreak)
 {
+	size_t written = 0;
 	size_t index = get_index(t_position);
 
 	if (t_consoleIndex >= CONSOLE_COUNT)
-		return;
+		return {};
 
 	if (t_position.X < 0 ||
 		t_position.Y < 0 ||
 		t_position.X >= g_consoleSize.X ||
 		t_position.Y >= g_consoleSize.Y)
-		return;
+		return {};
 
 	auto& buffer = g_console[t_consoleIndex];
 
-	for (wchar_t ch : t_text)
+	int areaSize = 0;
+	SHORT lineBreakCount = 0;
+	bool pendingLine = false;
+
+	COORD position = t_position;
+	auto words = split(std::wstring(t_text), L' ');
+
+	for (size_t i = 0; i < words.size(); ++i)
 	{
-		if (t_position.X >= g_consoleSize.X)
-			break;
+		const std::wstring& word = words[i];
 
-		buffer.cells[index].Char.UnicodeChar = ch;
-		buffer.cells[index].Attributes = t_attribute;
+		if (t_lineBreak > 0 &&
+			areaSize > 0 &&
+			areaSize + word.size() > t_lineBreak)
+		{
+			position.X = t_position.X;
+			position.Y++;
 
-		++index;
-		++t_position.X;
+			if (position.Y >= g_consoleSize.Y)
+				break;
+
+			index = get_index(position);
+			areaSize = 0;
+			lineBreakCount++;
+		}
+
+		for (wchar_t ch : word)
+		{
+			if (position.X >= g_consoleSize.X)
+				break;
+
+			buffer.cells[index].Char.UnicodeChar = ch;
+			buffer.cells[index].Attributes = t_attribute;
+
+			++index;
+			++position.X;
+			++areaSize;
+			++written;
+		}
+
+		if (i + 1 < words.size())
+		{
+			if (t_lineBreak > 0)
+			{
+				if (areaSize + 1 > t_lineBreak)
+				{
+					position.X = t_position.X;
+					position.Y++;
+
+					if (position.Y >= g_consoleSize.Y)
+						break;
+
+					index = get_index(position);
+					areaSize = 0;
+					lineBreakCount++;
+				}
+				else
+				{
+					buffer.cells[index].Char.UnicodeChar = L' ';
+					buffer.cells[index].Attributes = t_attribute;
+
+					++index;
+					++position.X;
+					++areaSize;
+					++written;
+				}
+			}
+			else
+			{
+				buffer.cells[index].Char.UnicodeChar = L' ';
+				buffer.cells[index].Attributes = t_attribute;
+
+				++index;
+				++position.X;
+				++areaSize;
+				++written;
+			}
+		}
 	}
+	return { static_cast<SHORT>(t_text.size()),lineBreakCount };
 }
 
-void write(COORD t_position, std::wstring_view t_text, WORD t_attribute)
+COORD write(
+	COORD t_position,
+	std::wstring_view t_text, 
+	WORD t_attribute, 
+	SHORT t_lineBreak)
 {
-	write(t_position, t_text, g_activeConsole, t_attribute);
+	return write(t_position, t_text, g_activeConsole, t_attribute, t_lineBreak);
 }
 
-void write(COORD t_position, std::wstring_view t_text)
+COORD write(
+	COORD t_position,
+	std::wstring_view t_text, 
+	SHORT t_lineBreak)
 {
-	write(t_position, t_text, g_activeConsole, DEFAULT_ATTRIBUTE);
+	return write(t_position, t_text, g_activeConsole, DEFAULT_ATTRIBUTE, t_lineBreak);
 }
 
 COORD get_size()
@@ -236,6 +310,8 @@ CONSOLE_SCREEN_BUFFER_INFO get_csbi()
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-	ERROR_LOG(GetConsoleScreenBufferInfo(g_console[g_activeConsole].handle, &csbi));
+	ERROR_LOG(GetConsoleScreenBufferInfo(
+		g_console[g_activeConsole].handle, &csbi));
+
 	return csbi;
 }
