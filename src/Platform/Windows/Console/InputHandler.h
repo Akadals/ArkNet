@@ -1,10 +1,8 @@
 #pragma once
 #include <string>
 #include <conio.h>
-#include <../include/AkaNetCore/CommandManager.h>
+//#include <../include/AkaNetCore/CommandManager.h>
 
-inline std::string g_sInputBuffer;
-inline COORD g_pInputPosition;
-
-void SetInputPosition(SHORT x, SHORT y);
-void GetInput();
+inline std::wstring g_sInputBuffer;
+void set_input_position(COORD t_position);
+void get_input();

@@ -164,7 +164,8 @@ namespace AkaNetCore
 			LEVEL_EXCAPTION = 1 << 5,
 			LEVEL_MESSAGE	= 1 << 6,
 			LEVEL_CRASH		= 1 << 7,
-			LEVEL_TRACE		= 1 << 8
+			LEVEL_TRACE		= 1 << 8,
+			LEVEL_HELP		= 1 << 9,
 		};
 
 		bool OpenLogFile();

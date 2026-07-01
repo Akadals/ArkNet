@@ -97,6 +97,7 @@ namespace
 		case AkaNetCore::Logger::LogType::LEVEL_MESSAGE:	return "MESSAGE";
 		case AkaNetCore::Logger::LogType::LEVEL_CRASH:		return "CRASH";
 		case AkaNetCore::Logger::LogType::LEVEL_TRACE:		return "TRACE";
+		case AkaNetCore::Logger::LogType::LEVEL_HELP:		return "HELP";
 		}
 	}
 	Color GetTypeColor(AkaNetCore::Logger::LogType type)
@@ -113,6 +114,7 @@ namespace
 		case AkaNetCore::Logger::LogType::LEVEL_MESSAGE:	return LIGHTMAGENTA;
 		case AkaNetCore::Logger::LogType::LEVEL_CRASH:		return BLUE;
 		case AkaNetCore::Logger::LogType::LEVEL_TRACE:		return CYAN;
+		case AkaNetCore::Logger::LogType::LEVEL_HELP:		return LIGHTMAGENTA;
 		}
 	}
 	void SetColor(Color color)

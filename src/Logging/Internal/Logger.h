@@ -5,6 +5,8 @@
 #include <psapi.h>
 #include <vector>
 #include <sstream>
+#include <iomanip>
+#include <chrono>
 
 #define ERROR_LOG(x) auto_error_logging(x)
 
@@ -29,3 +31,5 @@ DWORD get_cpu_core_count();
 DWORD get_cpu_thread_count();
 double get_memory_usage(SHORT t_unit = 0);
 double get_memory_size(SHORT t_unit = 0);
+std::wstring get_memory_usage_string(SHORT t_unit = 0);
+std::wstring get_memory_size_string(SHORT t_unit = 0);

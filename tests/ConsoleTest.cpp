@@ -1,6 +1,6 @@
 #include <iostream>
 #include <../src/Platform/Windows/Console/ConsoleManager.h>
-using namespace AkaNetCore;
+//using namespace AkaNetCore;
 
 int main()
 {

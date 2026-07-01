@@ -1,6 +1,12 @@
-#include "Logger.h"
+﻿#include "Logger.h"
 
-
+namespace
+{
+    std::chrono::steady_clock::time_point g_lastMemoryUsageUpdate =
+        std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point g_lastMemorySizeUpdate =
+        std::chrono::steady_clock::now();
+}
 
 void Log::operator+=(const std::string& t_other)
 {
@@ -16,6 +22,7 @@ std::vector<std::wstring> split(std::wstring t_input, wchar_t t_delimiter)
     while (std::getline(iss, token, t_delimiter))
     {
         if (!token.empty()) result.push_back(token);
+        else result.push_back(L" ");
     }
     return result;
 }
@@ -58,7 +65,7 @@ std::wstring get_cpu_name()
     return std::wstring(brand, brand + strlen(brand)) +
         L" (" +
         std::to_wstring(get_cpu_core_count()) +
-        L"C " +
+        L"C " +
         std::to_wstring(get_cpu_thread_count()) +
         L"T)";
 }
@@ -144,4 +151,27 @@ double get_memory_size(SHORT t_unit)
     case 3:
         return memInfo.ullTotalPhys / 1024.0 / 1024.0 / 1024.0;
     }
+}
+
+std::wostringstream memUsage;
+std::wstring get_memory_usage_string(SHORT t_unit)
+{
+    auto now = std::chrono::steady_clock::now();
+    if (!memUsage.str().empty() &&
+        now - g_lastMemoryUsageUpdate < std::chrono::milliseconds(500))
+    {
+        return memUsage.str();
+    }
+    memUsage.clear();
+    memUsage.str(L"");
+    memUsage << std::fixed << std::setprecision(1) << get_memory_usage(1);
+    g_lastMemoryUsageUpdate = now;
+    return memUsage.str();
+}
+
+std::wstring get_memory_size_string(SHORT t_unit)
+{
+    std::wostringstream memSize;
+    memSize << std::fixed << std::setprecision(1) << get_memory_size(2);
+    return memSize.str();
 }
