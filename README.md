@@ -7,4 +7,4 @@ AkaNetCore 네트워크 라이브러리
 
 2026/07/01 수정
 TUI 레이아웃 피드백 받는중
-<img width="1891" height="974" alt="스크린샷 2026-07-01 164134" src="https://github.com/user-attachments/assets/4f9240f1-1184-479a-aaf7-de751d2300f5" />
+<img width="1892" height="977" alt="스크린샷 2026-07-03 214810" src="https://github.com/user-attachments/assets/09d7787d-eab6-45b5-8db3-03f3b5f60a50" />
