@@ -45,5 +45,5 @@ void get_input()
             g_sInputBuffer.push_back(key);
         }
     }
-    write({ 4,static_cast<SHORT>(g_consoleSize.Y - 2) }, g_sInputBuffer);
+    //write({ 4,static_cast<SHORT>(g_consoleSize.Y - 2) }, g_sInputBuffer);
 }

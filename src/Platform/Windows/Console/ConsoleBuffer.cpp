@@ -159,11 +159,51 @@ void force_reset_window(HANDLE t_handle, COORD t_size)
 	ERROR_LOG(SetConsoleWindowInfo(t_handle, TRUE, &rect));
 	ERROR_LOG(SetConsoleCursorPosition(t_handle, { 0,0 }));
 }
+ATEXT operator+(ASTRING lhs, ASTRING rhs)
+{
+	ATEXT text;
+	text.strings.emplace_back(std::move(lhs));
+	text.strings.emplace_back(std::move(rhs));
+	return text;
+}
+ATEXT operator+(ATEXT lhs, ASTRING rhs)
+{
+	lhs.strings.emplace_back(std::move(rhs));
+	return lhs;
+}
+ATEXT operator+(ATEXT lhs, std::wstring_view rhs)
+{
+	lhs.strings.emplace_back(ASTRING{ std::wstring(rhs), DEFAULT_ATTRIBUTE });
+	return lhs;
+}
+ATEXT operator+(ASTRING lhs, std::wstring_view rhs)
+{
+	ATEXT text;
+	text.strings.emplace_back(std::move(lhs));
+	text.strings.emplace_back(ASTRING{ std::wstring(rhs), DEFAULT_ATTRIBUTE });
+	return text;
+}
+ATEXT operator+(std::wstring_view lhs, ASTRING rhs)
+{
+	return ATEXT(lhs) + rhs;
+}
+ATEXT operator+(std::wstring_view lhs, std::wstring_view rhs)
+{
+	return ATEXT(lhs) + rhs;
+}
+ATEXT operator+(const wchar_t* lhs, ASTRING rhs)
+{
+	return ATEXT(lhs) + rhs;
+}
+
+ATEXT operator+(ASTRING lhs, const wchar_t* rhs)
+{
+	return lhs + std::wstring_view(rhs);
+}
 COORD write(
 	COORD t_position,
-	std::wstring_view t_text,
+	ATEXT t_text,
 	size_t t_consoleIndex,
-	WORD t_attribute,
 	SHORT t_lineBreak)
 {
 	size_t written = 0;
@@ -186,44 +226,18 @@ COORD write(
 
 	COORD position = t_position;
 
-	if (t_lineBreak > 0)
+	for (const ASTRING& str : t_text.strings)
 	{
-		auto words = split(std::wstring(t_text), L' ');
-
-		for (size_t i = 0; i < words.size(); ++i)
+		if (t_lineBreak > 0)
 		{
-			const std::wstring& word = words[i];
+			auto words = split(std::wstring(str.string), L' ');
 
-			if (areaSize > 0 &&
-				areaSize + word.size() > t_lineBreak)
+			for (size_t i = 0; i < words.size(); ++i)
 			{
-				position.X = t_position.X;
-				position.Y++;
+				const std::wstring& word = words[i];
 
-				if (position.Y >= g_consoleSize.Y)
-					break;
-
-				index = get_index(position);
-				areaSize = 0;
-				lineBreakCount++;
-			}
-			for (wchar_t ch : word)
-			{
-				if (position.X >= g_consoleSize.X)
-					break;
-
-				buffer.cells[index].Char.UnicodeChar = ch;
-				buffer.cells[index].Attributes = t_attribute;
-
-				++index;
-				++position.X;
-				++areaSize;
-				++written;
-			}
-
-			if (i + 1 < words.size())
-			{
-				if (areaSize + 1 > t_lineBreak)
+				if (areaSize > 0 &&
+					areaSize + word.size() > t_lineBreak)
 				{
 					position.X = t_position.X;
 					position.Y++;
@@ -235,62 +249,75 @@ COORD write(
 					areaSize = 0;
 					lineBreakCount++;
 				}
-				else
+				for (wchar_t ch : word)
 				{
-					buffer.cells[index].Char.UnicodeChar = L' ';
-					buffer.cells[index].Attributes = t_attribute;
+					if (position.X >= g_consoleSize.X)
+						break;
+
+					buffer.cells[index].Char.UnicodeChar = ch;
+					buffer.cells[index].Attributes = str.attribute;
 
 					++index;
 					++position.X;
 					++areaSize;
 					++written;
 				}
+
+				if (i + 1 < words.size())
+				{
+					if (areaSize + 1 > t_lineBreak)
+					{
+						position.X = t_position.X;
+						position.Y++;
+
+						if (position.Y >= g_consoleSize.Y)
+							break;
+
+						index = get_index(position);
+						areaSize = 0;
+						lineBreakCount++;
+					}
+					else
+					{
+						buffer.cells[index].Char.UnicodeChar = L' ';
+						buffer.cells[index].Attributes = str.attribute;
+
+						++index;
+						++position.X;
+						++areaSize;
+						++written;
+					}
+				}
 			}
 		}
-	}
-	else
-	{
-		for (wchar_t ch : std::wstring(t_text))
+		else
 		{
-			if (position.X >= g_consoleSize.X)
-				break;
+			for (wchar_t ch : std::wstring(str.string))
+			{
+				if (position.X >= g_consoleSize.X)
+					break;
 
-			buffer.cells[index].Char.UnicodeChar = ch;
-			buffer.cells[index].Attributes = t_attribute;
+				buffer.cells[index].Char.UnicodeChar = ch;
+				buffer.cells[index].Attributes = str.attribute;
 
-			++index;
-			++position.X;
-			++areaSize;
-			++written;
+				++index;
+				++position.X;
+				++areaSize;
+				++written;
+			}
 		}
 	}
 	return { static_cast<SHORT>(t_text.size()),lineBreakCount };
 }
-
 COORD write(
 	COORD t_position,
-	std::wstring_view t_text, 
-	WORD t_attribute, 
-	SHORT t_lineBreak)
-{
-	return write(
-		t_position, 
-		t_text, 
-		g_activeConsole, 
-		t_attribute, 
-		t_lineBreak);
-}
-
-COORD write(
-	COORD t_position,
-	std::wstring_view t_text, 
+	ATEXT t_text,
 	SHORT t_lineBreak)
 {
 	return write(
 		t_position,
 		t_text, 
 		g_activeConsole,
-		DEFAULT_ATTRIBUTE,
 		t_lineBreak);
 }
 

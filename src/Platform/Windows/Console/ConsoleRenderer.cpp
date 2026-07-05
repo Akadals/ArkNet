@@ -72,53 +72,60 @@ PANEL_VIEWPORT render_panel(
 
 	write(
 		t_position.startPosition,
-		{ &corner[0],1 },
-		t_attribute.panelColorAttribute);
+		MAKEASTR(
+			std::wstring_view(&corner[0], 1),
+			t_attribute.panelColorAttribute));
 	write(
 		MAKECOORD(
 			t_position.startPosition.X + 
 			t_position.panelScale.X + 1, 
 			t_position.startPosition.Y),
-		{ &corner[1],1 },
-		t_attribute.panelColorAttribute);
+		MAKEASTR(
+			std::wstring_view(&corner[1], 1),
+			t_attribute.panelColorAttribute));
 	write(
 		MAKECOORD(
 			t_position.startPosition.X, 
 			t_position.startPosition.Y + 
 			t_position.panelScale.Y + 1),
-		{ &corner[2],1 },
-		t_attribute.panelColorAttribute);
+		MAKEASTR(
+			std::wstring_view(&corner[2], 1),
+			t_attribute.panelColorAttribute));
 	write(
 		MAKECOORD(
 			t_position.startPosition.X +
 			t_position.panelScale.X + 1,
 			t_position.startPosition.Y +
 			t_position.panelScale.Y + 1),
-		{ &corner[3],1 },
-		t_attribute.panelColorAttribute);
+		MAKEASTR(
+			std::wstring_view(&corner[3], 1),
+			t_attribute.panelColorAttribute));
 
 	for (i = 1; i < t_position.panelScale.X + 1;)
 		write(
 			MAKECOORD(
 				t_position.startPosition.X + i++,
 				t_position.startPosition.Y),
-			{ &panelFrames[0],1 },
-			t_attribute.panelColorAttribute);
+			MAKEASTR(
+				std::wstring_view(&panelFrames[0], 1),
+				t_attribute.panelColorAttribute));
 	for (i = 1; i < t_position.panelScale.Y + 1;)
 	{
 		write(
 			MAKECOORD(
 				t_position.startPosition.X,
 				t_position.startPosition.Y + i),
-			{ &panelFrames[1],1 },
-			t_attribute.panelColorAttribute);
+			MAKEASTR(
+				std::wstring_view(&panelFrames[1], 1),
+				t_attribute.panelColorAttribute));
 		write(
 			MAKECOORD(
 				t_position.startPosition.X +
 				t_position.panelScale.X + 1,
 				t_position.startPosition.Y + i++),
-			{ &panelFrames[1],1 },
-			t_attribute.panelColorAttribute);
+			MAKEASTR(
+				std::wstring_view(&panelFrames[1], 1),
+				t_attribute.panelColorAttribute));
 	}
 	for (i = 1; i < t_position.panelScale.X + 1;)
 		write(
@@ -126,8 +133,9 @@ PANEL_VIEWPORT render_panel(
 				t_position.startPosition.X + i++,
 				t_position.startPosition.Y +
 				t_position.panelScale.Y + 1),
-			{ &panelFrames[0],1 },
-			t_attribute.panelColorAttribute);
+			MAKEASTR(
+				std::wstring_view(&panelFrames[0], 1),
+				t_attribute.panelColorAttribute));
 
 	if (!t_title.empty())
 	{
@@ -137,8 +145,9 @@ PANEL_VIEWPORT render_panel(
 				t_position.startPosition.X +
 				t_position.titlePosition + 1,
 				t_position.startPosition.Y),
-			t_title,
-			t_attribute.titleColorAttribute);
+			MAKEASTR(
+				t_title,
+				t_attribute.titleColorAttribute));
 	}
 
 	return viewport;
@@ -158,8 +167,7 @@ void drow_panel()
 			MAKECOORD(0, 2),
 			MAKECOORD(g_consoleSize.X - 2, 1)
 		},
-		{ PanelLink::Top },
-		L"");
+		{ PanelLink::Top });
 #pragma endregion
 #pragma region SYSTEM
 	render_panel(
@@ -394,8 +402,7 @@ void drow_panel()
 void write(
 	COORD t_position, 
 	PANEL_VIEWPORT t_viewport,
-	std::wstring_view t_text,
-	WORD t_attribute)
+	ATEXT t_text)
 {
 	COORD absolutePosition =
 	{
@@ -407,12 +414,12 @@ void write(
 	write(
 		absolutePosition,
 		t_text,
-		t_attribute,
-		t_viewport.screenRect.Right -
-		t_viewport.screenRect.Left + 1);
+		static_cast<SHORT>(
+			t_viewport.screenRect.Right -
+			t_viewport.screenRect.Left + 1));
 }
 
-unsigned __stdcall RenderThread(PVOID arg)
+unsigned __stdcall render_thread(PVOID arg)
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi{};
 	COORD oldSize = g_consoleSize;

@@ -95,7 +95,6 @@ inline std::unordered_map<uint8_t, PANEL_VIEWPORT> panel;
 void write(
 	COORD t_position,
 	PANEL_VIEWPORT t_viewport,
-	std::wstring_view t_text,
-	WORD t_attribute = DEFAULT_ATTRIBUTE);
+	ATEXT t_text);
 
-unsigned __stdcall RenderThread(PVOID arg);
+unsigned __stdcall render_thread(PVOID arg);
