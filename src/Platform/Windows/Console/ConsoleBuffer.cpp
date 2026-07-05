@@ -268,22 +268,6 @@ COORD write(
 }
 
 COORD write(
-	SHORT x,
-	SHORT y,
-	std::wstring_view t_text, 
-	size_t t_consoleIndex, 
-	WORD t_attribute, 
-	SHORT t_lineBreak)
-{
-	return write(
-		{ x,y },
-		t_text,
-		t_consoleIndex,
-		t_attribute,
-		t_lineBreak);
-}
-
-COORD write(
 	COORD t_position,
 	std::wstring_view t_text, 
 	WORD t_attribute, 
@@ -291,21 +275,6 @@ COORD write(
 {
 	return write(
 		t_position, 
-		t_text, 
-		g_activeConsole, 
-		t_attribute, 
-		t_lineBreak);
-}
-
-COORD write(
-	SHORT x,
-	SHORT y,
-	std::wstring_view t_text, 
-	WORD t_attribute, 
-	SHORT t_lineBreak)
-{
-	return write(
-		{ x,y }, 
 		t_text, 
 		g_activeConsole, 
 		t_attribute, 
@@ -323,25 +292,6 @@ COORD write(
 		g_activeConsole,
 		DEFAULT_ATTRIBUTE,
 		t_lineBreak);
-}
-
-COORD write(
-	SHORT x,
-	SHORT y,
-	std::wstring_view t_text, 
-	SHORT t_lineBreak)
-{
-	return write(
-		{x,y}, 
-		t_text,
-		g_activeConsole,
-		DEFAULT_ATTRIBUTE, 
-		t_lineBreak);
-}
-
-std::vector<CHAR_INFO>* get_info()
-{
-	return &g_console[g_activeConsole].cells;
 }
 
 size_t get_index(COORD t_position)
