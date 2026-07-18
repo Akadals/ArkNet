@@ -18,10 +18,13 @@ static_cast<SHORT>(right),static_cast<SHORT>(bottom) }
 #include <vector>
 #include <atomic>
 #include <cassert>
+#include <mutex>
 #include "../../../Logging/Internal/Logger.h"
 
 
+inline std::mutex mtx;
 inline COORD g_consoleSize{ 0,0 };
+
 
 void initialize_buffer();
 void close_buffer();
